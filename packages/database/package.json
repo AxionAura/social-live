@@ -1,0 +1,23 @@
+{
+  "name": "@social-live/database",
+  "version": "0.1.0",
+  "description": "SQLite data layer and migrations for SocialLive (uses node:sqlite, no native modules)",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.7.0"
+  }
+}

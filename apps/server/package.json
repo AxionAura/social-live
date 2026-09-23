@@ -1,0 +1,38 @@
+{
+  "name": "@social-live/server",
+  "version": "0.1.0",
+  "description": "SocialLive API server: auth, uploads, stream orchestration, scheduler, SSE",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "social-live-server": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.0",
+    "@fastify/helmet": "^13.0.0",
+    "@fastify/multipart": "^9.0.0",
+    "@fastify/rate-limit": "^10.0.0",
+    "@fastify/static": "^8.0.0",
+    "@social-live/database": "*",
+    "@social-live/facebook": "*",
+    "@social-live/shared": "*",
+    "@social-live/streaming": "*",
+    "@social-live/youtube": "*",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,14 @@
+# Caddy reverse proxy configuration for SocialLive
+# 1. Replace your-domain.com with your actual domain
+# 2. Run: docker compose --profile proxy up -d
+# 3. Caddy will automatically obtain and renew TLS certificates via Let's Encrypt
+
+your-domain.com {
+  reverse_proxy social-live:3000
+  header {
+    Strict-Transport-Security "max-age=15552000"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "no-referrer"
+    Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  }
+}

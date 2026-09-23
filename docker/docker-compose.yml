@@ -1,0 +1,47 @@
+services:
+  social-live:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: social-live:latest
+    container_name: social-live
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/data
+      - APP_HOST=0.0.0.0
+      - APP_PORT=3000
+      - FFMPEG_PATH=/usr/bin/ffmpeg
+      - FFPROBE_PATH=/usr/bin/ffprobe
+      # - SESSION_SECRET=your-long-random-secret-here
+      # - ENCRYPTION_KEY=your-long-random-encryption-key-here
+      # - ALLOW_PRIVATE_RTMP_TARGETS=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: reverse proxy with Caddy for HTTPS (uncomment and configure)
+  # caddy:
+  #   image: caddy:2-alpine
+  #   container_name: social-live-caddy
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+  #   depends_on:
+  #     - social-live
+
+# volumes:
+#   caddy_data:
+#   caddy_config:
