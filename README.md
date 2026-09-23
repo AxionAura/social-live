@@ -48,18 +48,27 @@ No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, 
 
 ## 🚀 Quick Start
 
-### Option 1: One-line installer (recommended — Linux / macOS / Termux)
+### Option 1: One-line installer (recommended)
+
+**Linux / macOS / Termux:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/AxionAura/social-live/main/install.sh | bash
 ```
 
-The script installs Node.js and FFmpeg if they're missing, downloads and builds
-SocialLive into `~/.social-live`, registers a background service (systemd user
-unit on Linux, launchd on macOS), and prints the dashboard URL. Later:
-`social-live update` to upgrade, `social-live doctor` to diagnose,
-`install.sh --uninstall` to remove. Review the script before running — it's
-part of the repo.
+**Windows 10/11 (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/AxionAura/social-live/main/install.ps1 | iex
+```
+
+The installer provisions Node.js and FFmpeg if they're missing (user-local
+runtime — no admin rights needed on Windows), downloads and builds SocialLive
+into `~/.social-live` (Windows: `%USERPROFILE%\.social-live`), registers a
+background service (systemd user unit / launchd / Scheduled Task), and opens
+the dashboard in your browser. Later: `social-live update` to upgrade,
+`social-live doctor` to diagnose, `--uninstall` / `-Uninstall` to remove.
+Review the script before running — it's part of the repo.
 
 ### Option 2: Docker (recommended for VPS)
 
@@ -77,7 +86,7 @@ docker compose -f docker/docker-compose.yml up -d
 #    First run → create admin account → add YouTube/Facebook → upload video → Go live!
 ```
 
-### Option 3: Native (Linux / macOS / Windows)
+### Option 3: Native (manual — Linux / macOS / Windows)
 
 ```bash
 # Prerequisites: Node.js 22.13+, FFmpeg
@@ -241,8 +250,8 @@ Copyleft, on purpose: if you modify SocialLive and offer it as a hosted service,
 
 | Milestone | Planned |
 |---------|---------|
-| ✅ **Shipped** | YouTube, Facebook, **Twitch, Kick**, multi-destination streaming, scheduling, loop modes, one-line installer |
-| **v0.4** | Windows installer, notifications (Telegram/email), recurring schedules, stream thumbnails in history |
+| ✅ **Shipped** | YouTube, Facebook, **Twitch, Kick**, multi-destination streaming, scheduling, loop modes, one-line installer (Linux/macOS/Termux/**Windows**) |
+| **v0.4** | Notifications (Telegram/email), recurring schedules, stream thumbnails in history, richer live metrics |
 | **v0.5** | TikTok + more platforms, OAuth (YouTube/Facebook metadata from dashboard), platform APIs (stream health, chat) |
 | **v1.0** | Webcam & screen capture, scene editor, overlays/watermarks, audio mixer |
 | **Beyond** | Multi-user, RBAC, team workspaces, distributed streaming |

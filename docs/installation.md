@@ -1,9 +1,15 @@
 # Installation Guide
 
-## One-line installer (Linux / macOS / Termux — easiest)
+## One-line installer (easiest)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/AxionAura/social-live/main/install.sh | bash
+```
+
+**Windows 10/11 (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/AxionAura/social-live/main/install.ps1 | iex
 ```
 
 The script detects your OS and package manager, provisions Node.js (≥ 22.13) and

@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+- **Windows one-line installer** (`install.ps1`) — PowerShell `irm | iex` on Windows 10/11: provisions portable Node.js and FFmpeg into `%USERPROFILE%\.social-live` (no admin rights), downloads/builds the app, registers a logon Scheduled Task, and installs a `social-live.cmd` control command with `update`/`-Uninstall`
 
 ## [0.3.0] - 2026-09-24
 
