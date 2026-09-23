@@ -6,6 +6,32 @@ import { scryptSync } from 'node:crypto';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+/**
+ * Load KEY=VALUE pairs from .env in the working directory into process.env.
+ * Existing environment variables always win. No dotenv dependency — the format
+ * handled here covers the documented configuration surface (comments, quotes).
+ */
+function loadDotEnv(path = '.env'): void {
+  let text: string;
+  try {
+    text = readFileSync(path, 'utf8');
+  } catch {
+    return;
+  }
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const eq = line.indexOf('=');
+    if (eq <= 0) continue;
+    const key = line.slice(0, eq).trim();
+    if (!/^[A-Za-z_][A-Za-z0-9_.]*$/.test(key) || key in process.env) continue;
+    const value = line.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    process.env[key] = value;
+  }
+}
+
+loadDotEnv();
+
 export interface AppConfig {
   host: string;
   port: number;

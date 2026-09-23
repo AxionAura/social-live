@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+- **One-line installer** (`install.sh`) for Linux, macOS and Termux — provisions Node.js and FFmpeg (prefers user-local runtimes, minimal sudo), clones/builds SocialLive, registers a background service (systemd user unit / launchd), and installs a `social-live` control command with `start | stop | status | doctor | update` plus `--uninstall`
+- **`.env` loading** — the server now reads `KEY=VALUE` from `.env` in the working directory at startup (existing environment variables win; no dotenv dependency)
 
 ## [0.2.1] - 2026-09-23
 

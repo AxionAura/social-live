@@ -1,5 +1,27 @@
 # Installation Guide
 
+## One-line installer (Linux / macOS / Termux — easiest)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AxionAura/social-live/main/install.sh | bash
+```
+
+The script detects your OS and package manager, provisions Node.js (≥ 22.13) and
+FFmpeg if missing (user-local runtime download — asks for sudo only when a system
+package is the cleanest route), clones and builds SocialLive into `~/.social-live`,
+writes a `.env`, registers a background service and prints the dashboard URL.
+
+- Control command: `social-live start | stop | status | doctor | update`
+- The service restarts on failure and starts at login (systemd user unit / launchd)
+- Optional: `sudo loginctl enable-linger $USER` (Linux) keeps it running before login
+- Remove everything: `curl -fsSL https://raw.githubusercontent.com/AxionAura/social-live/main/install.sh | bash -s -- --uninstall`
+
+Flags: `--port N` (default 3000), `--dir PATH` (default `~/.social-live`),
+`--no-service`, `--uninstall`. The script is readable and versioned in the repo —
+inspect it before piping to bash.
+
+---
+
 ## Prerequisites
 
 | Requirement | Version | Notes |

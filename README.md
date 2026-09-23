@@ -48,7 +48,20 @@ No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, 
 
 ## 🚀 Quick Start
 
-### Option 1: Docker (recommended for VPS)
+### Option 1: One-line installer (recommended — Linux / macOS / Termux)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AxionAura/social-live/main/install.sh | bash
+```
+
+The script installs Node.js and FFmpeg if they're missing, downloads and builds
+SocialLive into `~/.social-live`, registers a background service (systemd user
+unit on Linux, launchd on macOS), and prints the dashboard URL. Later:
+`social-live update` to upgrade, `social-live doctor` to diagnose,
+`install.sh --uninstall` to remove. Review the script before running — it's
+part of the repo.
+
+### Option 2: Docker (recommended for VPS)
 
 ```bash
 # 1. Clone and configure
@@ -64,7 +77,7 @@ docker compose -f docker/docker-compose.yml up -d
 #    First run → create admin account → add YouTube/Facebook → upload video → Go live!
 ```
 
-### Option 2: Native (Linux / macOS / Windows)
+### Option 3: Native (Linux / macOS / Windows)
 
 ```bash
 # Prerequisites: Node.js 22.13+, FFmpeg
@@ -81,7 +94,7 @@ npm start
 # Open http://localhost:3000
 ```
 
-### Option 3: Termux (Android)
+### Option 4: Termux (Android — or use the one-line installer)
 
 ```bash
 pkg install nodejs ffmpeg git
