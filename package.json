@@ -1,6 +1,6 @@
 {
   "name": "social-live",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Open-source, self-hosted, cross-platform live streaming control platform for YouTube, Facebook, Twitch, and Kick.",
   "license": "AGPL-3.0-or-later",

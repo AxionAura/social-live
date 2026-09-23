@@ -191,6 +191,7 @@ export class StreamOrchestrator {
         videoBitrateKbps: config.videoBitrateKbps,
         audioBitrateKbps: config.audioBitrateKbps,
         preset: config.ffmpegPreset,
+        fps: config.videoFps,
       });
 
       const process = new FFmpegStreamProcess({

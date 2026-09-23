@@ -1,6 +1,6 @@
 {
   "name": "@social-live/streaming",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "FFmpeg streaming engine for SocialLive: process management, reconnect, monitoring",
   "license": "AGPL-3.0-or-later",
   "type": "module",

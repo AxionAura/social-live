@@ -106,6 +106,7 @@ Copy `.env.example` to `.env` and adjust:
 | `VIDEO_BITRATE_KBPS` | `4500` | Encoding video bitrate |
 | `AUDIO_BITRATE_KBPS` | `128` | Encoding audio bitrate |
 | `FFMPEG_PRESET` | `veryfast` | x264 preset (use `superfast` on weak devices) |
+| `VIDEO_FPS` | `30` | Output frame rate — Kick requires 30/60 |
 | `ALLOW_PRIVATE_RTMP_TARGETS` | `false` | **Dev only** — allows `rtmp://127.0.0.1/...` |
 | `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
 

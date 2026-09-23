@@ -44,6 +44,13 @@ Official reference: [How to stream on KICK.com](https://help.kick.com/en/article
 
 Click **Test** to verify connectivity.
 
+> **"MISCONFIGURED" in the Kick dashboard?** That badge means Kick received your
+> stream but the input doesn't meet its requirements — most commonly a frame
+> rate outside 30/60 FPS, or a stream key/ingest mismatch. SocialLive encodes
+> at **30 FPS by default** (`VIDEO_FPS` in `.env`). Make sure the ingest URL and
+> key match the ones shown on *your* dashboard exactly, and keep the video's
+> session inside SocialLive running until Kick's status flips to live.
+
 ---
 
 ## Stream Metadata (Title, Category)

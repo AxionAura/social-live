@@ -66,3 +66,15 @@ test('non-progress lines return null', () => {
 function parseOutputHelper(line) {
   return parseProgress(line);
 }
+
+test('forces 30 fps output by default (Kick requires 30/60)', () => {
+  const args = buildStreamArgs(BASE);
+  assert.equal(args[args.indexOf('-r') + 1], '30');
+  assert.equal(args[args.indexOf('-g') + 1], '60');
+});
+
+test('custom fps overrides output rate and GOP', () => {
+  const args = buildStreamArgs({ ...BASE, fps: 60 });
+  assert.equal(args[args.indexOf('-r') + 1], '60');
+  assert.equal(args[args.indexOf('-g') + 1], '120');
+});

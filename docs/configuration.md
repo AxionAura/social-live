@@ -51,6 +51,7 @@ data/
 | `FFMPEG_PRESET` | `veryfast` | x264 speed preset: `ultrafast` … `veryslow`. Use `superfast`/`ultrafast` on weak CPUs (Termux, old laptops). |
 | `VIDEO_BITRATE_KBPS` | `4500` | Target video bitrate (kbps). Lower for limited upload bandwidth. |
 | `AUDIO_BITRATE_KBPS` | `128` | Target audio bitrate (kbps). |
+| `VIDEO_FPS` | `30` | Output frame rate forced on the encoder. Kick rejects non-30/60 sessions; keep 30 (or 60) for live platforms. |
 
 **Bitrate guidelines:**
 

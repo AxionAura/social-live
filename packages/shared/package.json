@@ -1,6 +1,6 @@
 {
   "name": "@social-live/shared",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared types, constants and validation schemas for SocialLive",
   "license": "AGPL-3.0-or-later",
   "type": "module",

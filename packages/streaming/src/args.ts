@@ -9,6 +9,7 @@ export interface StreamArgsOptions {
   audioBitrateKbps: number;
   /** x264 speed preset: ultrafast … veryslow (default veryfast). */
   preset: string;
+  /** Output frame rate forced on the encoder (default 30 — platforms such as Kick require 30/60). */
   fps?: number;
 }
 
@@ -39,6 +40,7 @@ export function buildStreamArgs(options: StreamArgsOptions): string[] {
     '-b:v', `${options.videoBitrateKbps}k`,
     '-maxrate', `${maxRate}k`,
     '-bufsize', `${maxRate * 2}k`,
+    '-r', String(options.fps ?? 30),
     '-g', String((options.fps ?? 30) * 2),
     '-c:a', 'aac',
     '-b:a', `${options.audioBitrateKbps}k`,

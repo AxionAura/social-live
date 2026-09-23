@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.2.1] - 2026-09-23
+
+### Fixed
+- **Output frame rate is now forced (default 30 FPS, `VIDEO_FPS` env)** — the encoder previously passed the source video's frame rate through, so 24 FPS videos triggered Kick's `MISCONFIGURED` session state (with a "use 30 or 60 FPS" warning) even though the stream arrived. Kick requires 30/60 FPS input; YouTube and Twitch are unaffected.
+- Server `version` string now reflects the release (was stale at 0.1.0).
+
 ## [0.2.0] - 2026-09-23
 
 ### Added
