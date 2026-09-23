@@ -136,7 +136,7 @@ axion_step() {
   local frame="${AX_FRAMES[$((AX_FI % ${#AX_FRAMES[@]}))]}"; AX_FI=$((AX_FI + 1))
   printf '%b\n' "${AX_C_DIM}  ────────────────────────────${AX_RESET}"
   printf '%b\n' "$(printf '%b' "${AX_C_DIM}${frame}${AX_RESET}" | sed $'s/●/\033[38;2;168;85;247m●\033[38;2;48;54;61m/g')"
-  printf '%b\n' "${AX_C_VIOLET}${spin:0:1}${AX_RESET} ${AX_C_FG}${label}${AX_RESET} ${AX_C_MUTED}…"
+  printf '%b' "${AX_C_VIOLET}${spin:0:1}${AX_RESET} ${AX_C_FG}${label}${AX_RESET} ${AX_C_MUTED}…"
   while kill -0 "$pid" 2>/dev/null; do
     sleep 0.12
     local b="${spin:$((si % ${#spin})):1}"; si=$((si + 1))
@@ -144,7 +144,7 @@ axion_step() {
     printf '%b' "$clr"
     printf '%b\n' "${AX_C_DIM}  ────────────────────────────${AX_RESET}"
     printf '%b\n' "$(printf '%b' "${AX_C_DIM}${frame}${AX_RESET}" | sed $'s/●/\033[38;2;168;85;247m●\033[38;2;48;54;61m/g')"
-    printf '%b\n' "${AX_C_VIOLET}${b}${AX_RESET} ${AX_C_FG}${label}${AX_RESET} ${AX_C_MUTED}…"
+    printf '%b' "${AX_C_VIOLET}${b}${AX_RESET} ${AX_C_FG}${label}${AX_RESET} ${AX_C_MUTED}…"
   done
   wait "$pid"; rc=$?
   printf '%b' "$clr"
