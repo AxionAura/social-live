@@ -14,7 +14,7 @@
 
 Instead, report via:
 
-1. **Email**: security@sociallive.example.com (replace with actual)
+1. **Email**: axionaura45@gmail.com
 2. **GitHub Security Advisories**: Use the "Report a vulnerability" tab in the repository
 
 Include:
@@ -63,4 +63,4 @@ Key guarantees:
 
 ## Contact
 
-For security questions: security@sociallive.example.com
+For security questions: axionaura45@gmail.com

@@ -2,6 +2,8 @@
 
 **Open-source, self-hosted, cross-platform live streaming control platform.**
 
+> **[AxionAura](https://github.com/AxionAura)** · Open source by default. Free for everyone.
+
 Broadcast recorded videos to **YouTube Live** and **Facebook Live** from a browser-based dashboard — while keeping your data, credentials, videos, and streaming infrastructure under your own control.
 
 No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, macOS, Android/Termux, Docker, VPS, or your laptop.
@@ -37,7 +39,7 @@ No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, 
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 cp .env.example .env
 # Edit .env (SESSION_SECRET, ENCRYPTION_KEY, etc.)
@@ -53,7 +55,7 @@ docker compose -f docker/docker-compose.yml up -d
 
 ```bash
 # Prerequisites: Node.js 22.13+, FFmpeg
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 npm ci
 npm run build
@@ -70,7 +72,7 @@ npm start
 
 ```bash
 pkg install nodejs ffmpeg git
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 npm ci
 npm run build
@@ -192,8 +194,6 @@ See `CONTRIBUTING.md` and `docs/developer.md` for details.
 
 MIT License — see `LICENSE` for details.
 
-> The project owner may choose a different license before the first public release (see PRD §74). MIT is the working default for maximum self-hosted adoption.
-
 ---
 
 ## 🗺 Roadmap
@@ -216,3 +216,10 @@ MIT License — see `LICENSE` for details.
 ---
 
 **Made for streamers who want full control.** 🎙️🚀
+
+---
+
+<p align="center">
+  <b>AxionAura</b> — Open source by default. Free for everyone.<br/>
+  <a href="https://axionaura.blogspot.com">Blog</a> · <a href="https://github.com/AxionAura">GitHub</a> · <a href="https://github.com/AxionAura/social-live/issues">Issues</a>
+</p>

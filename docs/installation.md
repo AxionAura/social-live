@@ -23,7 +23,7 @@ sudo apt-get install -y nodejs
 sudo apt-get install -y ffmpeg
 
 # 3. Clone and build
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 npm ci
 npm run build
@@ -72,7 +72,7 @@ sudo systemctl enable --now social-live
 #    - Add C:\ffmpeg\bin to PATH (System → Environment Variables)
 
 # 3. Clone and build
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 npm ci
 npm run build
@@ -104,7 +104,7 @@ brew install node@22
 brew install ffmpeg
 
 # 3. Clone and build
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 npm ci
 npm run build
@@ -155,7 +155,7 @@ pkg update && pkg upgrade
 pkg install nodejs ffmpeg git
 
 # 3. Clone and build
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 npm ci
 npm run build
@@ -178,7 +178,7 @@ npm start
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 
 # 2. Configure

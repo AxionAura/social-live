@@ -72,7 +72,7 @@ social-live/
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-org/social-live.git
+git clone https://github.com/AxionAura/social-live.git
 cd social-live
 
 # 2. Install

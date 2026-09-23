@@ -29,5 +29,14 @@
     "node-media-server": "^4.4.3",
     "tsx": "^4.19.2",
     "typescript": "^5.7.0"
+  },
+  "author": "AxionAura <axionaura45@gmail.com>",
+  "homepage": "https://axionaura.blogspot.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AxionAura/social-live.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AxionAura/social-live/issues"
   }
 }
