@@ -113,3 +113,29 @@ CREATE TABLE audit_logs (
 `,
   },
 ];
+
+/**
+ * v2: allow additional streaming platforms (twitch, kick, ...).
+ * The v1 CHECK constraint hard-coded the platform list, so the destinations
+ * table is rebuilt without it — platform validation lives in the application
+ * layer (zod schema + platform adapters). Existing rows are preserved.
+ */
+MIGRATIONS.push({
+  version: 2,
+  sql: `
+CREATE TABLE destinations_v2 (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  platform TEXT NOT NULL,
+  name TEXT NOT NULL,
+  encrypted_credentials TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'CONNECTED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+INSERT INTO destinations_v2 (id, user_id, platform, name, encrypted_credentials, status, created_at, updated_at)
+SELECT id, user_id, platform, name, encrypted_credentials, status, created_at, updated_at FROM destinations;
+DROP TABLE destinations;
+ALTER TABLE destinations_v2 RENAME TO destinations;
+`,
+});

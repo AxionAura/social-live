@@ -37,14 +37,27 @@ export class Database {
       | { v: number | null }
       | undefined;
     const current = row?.v ?? 0;
-    for (const migration of MIGRATIONS) {
-      if (migration.version <= current) continue;
-      this.transaction(() => {
-        this.handle.exec(migration.sql);
-        this.handle
-          .prepare('INSERT INTO schema_version (version, applied_at) VALUES (?, ?)')
-          .run(migration.version, nowIso());
-      });
+    const pending = MIGRATIONS.filter((migration) => migration.version > current);
+    if (pending.length === 0) return;
+    // Table-rebuild migrations must run with FK enforcement off
+    // (https://sqlite.org/lang_altertable.html) — PRAGMAs are no-ops inside
+    // a transaction, so toggle around the whole batch.
+    this.handle.exec('PRAGMA foreign_keys = OFF;');
+    try {
+      for (const migration of pending) {
+        this.transaction(() => {
+          this.handle.exec(migration.sql);
+          this.handle
+            .prepare('INSERT INTO schema_version (version, applied_at) VALUES (?, ?)')
+            .run(migration.version, nowIso());
+        });
+      }
+      const violations = this.handle.prepare('PRAGMA foreign_key_check').all();
+      if (violations.length > 0) {
+        throw new Error(`foreign key violations after migration: ${JSON.stringify(violations)}`);
+      }
+    } finally {
+      this.handle.exec('PRAGMA foreign_keys = ON;');
     }
   }
 

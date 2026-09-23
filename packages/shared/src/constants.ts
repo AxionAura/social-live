@@ -1,4 +1,4 @@
-export const PLATFORMS = ['youtube', 'facebook'] as const;
+export const PLATFORMS = ['youtube', 'facebook', 'twitch', 'kick'] as const;
 
 export type Platform = (typeof PLATFORMS)[number];
 
@@ -96,5 +96,17 @@ export const PLATFORM_META: Record<
     defaultIngestUrl: 'rtmps://live-api-s.facebook.com:443/rtmp/',
     keyHelpUrl: 'https://www.facebook.com/live/production',
     keyHelpText: 'Facebook Live Producer → Streaming software: copy the stream key.',
+  },
+  twitch: {
+    label: 'Twitch',
+    defaultIngestUrl: 'rtmps://live.twitch.tv:443/app',
+    keyHelpUrl: 'https://dashboard.twitch.tv/settings/stream',
+    keyHelpText: 'Twitch Creator Dashboard → Settings → Stream: copy the primary stream key.',
+  },
+  kick: {
+    label: 'Kick',
+    defaultIngestUrl: 'rtmps://fa723fc1b171.global-contribute.live-video.net:443/app',
+    keyHelpUrl: 'https://help.kick.com/en/articles/7066931-how-to-stream-on-kick-com',
+    keyHelpText: 'Kick Creator Dashboard → Settings → Stream Key: copy the stream key.',
   },
 };

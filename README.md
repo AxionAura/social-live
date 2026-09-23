@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/AxionAura/social-live/actions/workflows/ci.yml/badge.svg)](https://github.com/AxionAura/social-live/actions/workflows/ci.yml)
 
-Broadcast recorded videos to **YouTube Live** and **Facebook Live** from a browser-based dashboard — while keeping your data, credentials, videos, and streaming infrastructure under your own control.
+Broadcast recorded videos to **YouTube Live**, **Facebook Live**, **Twitch**, and **Kick** from a browser-based dashboard — while keeping your data, credentials, videos, and streaming infrastructure under your own control.
 
 No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, macOS, Android/Termux, Docker, VPS, or your laptop.
 
@@ -19,6 +19,8 @@ No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, 
 | 🎬 **Recorded video streaming** | ✅ MP4 / MOV / MKV |
 | 🌐 **YouTube Live** | ✅ RTMPS (stream key) |
 | 🌐 **Facebook Live** | ✅ RTMPS (stream key) |
+| 🟣 **Twitch** | ✅ RTMPS (stream key) |
+| 🟢 **Kick** | ✅ RTMPS (stream key) |
 | 🖥 **Browser dashboard** | ✅ Material UI, light/dark, responsive |
 | 🔐 **Local auth** | ✅ First-run admin setup, sessions |
 | 🔒 **Encrypted credentials** | ✅ AES-256-GCM at rest |
@@ -123,6 +125,16 @@ Copy `.env.example` to `.env` and adjust:
 3. Copy **Stream key**
 4. In SocialLive: **Destinations → Add → Facebook** → paste key
 
+### Twitch
+1. Open the [Twitch Creator Dashboard](https://dashboard.twitch.tv) → **Settings → Stream**
+2. Copy the **Primary Stream Key** (2FA required on your Twitch account)
+3. In SocialLive: **Destinations → Add → Twitch** → paste key
+
+### Kick
+1. Open [creator.kick.com](https://creator.kick.com) → **Settings → Stream Key**
+2. Copy the **Stream Key**
+3. In SocialLive: **Destinations → Add → Kick** → paste key
+
 > **Note:** Stream keys are encrypted on your server and never logged or exposed to the browser.
 
 ---
@@ -148,6 +160,8 @@ Copy `.env.example` to `.env` and adjust:
 | Installation (Linux / Windows / macOS / Termux / Docker / VPS) | `docs/installation.md` |
 | Configuration reference | `docs/configuration.md` |
 | YouTube setup walkthrough | `docs/platform-youtube.md` |
+| Twitch setup walkthrough | `docs/platform-twitch.md` |
+| Kick setup walkthrough | `docs/platform-kick.md` |
 | Facebook setup walkthrough | `docs/platform-facebook.md` |
 | Usage: upload → stream → schedule → history | `docs/usage.md` |
 | Troubleshooting (FFmpeg, ports, permissions, connections) | `docs/troubleshooting.md` |

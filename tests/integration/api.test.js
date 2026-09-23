@@ -157,12 +157,33 @@ test('full API + streaming integration', async (t) => {
   // stream key must never appear in the API payload
   assert.equal(JSON.stringify(destination).includes('it-key'), false);
 
+  // ── second destination on another platform (twitch) → same receiver ──
+  res = await client.call('/api/destinations', {
+    method: 'POST',
+    json: {
+      platform: 'twitch',
+      name: 'Receiver TW',
+      streamKey: 'it-key-tw',
+      streamUrl: `rtmp://127.0.0.1:${RTMP_PORT}/live`,
+    },
+  });
+  assert.equal(res.status, 201);
+  const twitchDestination = res.body;
+
+  // ── kick destination with default public ingest (config-only, no network) ──
+  res = await client.call('/api/destinations', {
+    method: 'POST',
+    json: { platform: 'kick', name: 'Kick', streamKey: 'it-key-kick' },
+  });
+  assert.equal(res.status, 201);
+  assert.equal(res.body.streamUrl.startsWith('rtmps://'), true);
+
   // ── stream create + start ──
   res = await client.call('/api/streams', {
     method: 'POST',
     json: {
       videoId: video.id,
-      destinationIds: [destination.id],
+      destinationIds: [destination.id, twitchDestination.id],
       title: 'Integration test',
       loopMode: 'none',
     },
@@ -190,16 +211,22 @@ test('full API + streaming integration', async (t) => {
   assert.ok(final, 'stream reached a terminal state');
   assert.equal(sawRunning, true, 'stream reported RUNNING');
   assert.equal(final.status, 'COMPLETED', `expected COMPLETED, got ${final.status} (${final.errorMessage})`);
+  assert.equal(final.destinations.length, 2, 'both destinations were part of the stream');
+  assert.ok(
+    final.destinations.every((d) => d.status === 'COMPLETED'),
+    `every destination completed: ${JSON.stringify(final.destinations.map((d) => d.status))}`,
+  );
   assert.ok(final.destinations[0].lastMetrics, 'metrics were captured');
   assert.ok(final.destinations[0].startedAt && final.destinations[0].endedAt);
 
-  // ── RTMP receiver actually got the publish ──
-  assert.ok(receiver.published.length >= 1, 'receiver saw an RTMP publish');
+  // ── RTMP receiver actually got the publish (one per platform destination) ──
+  assert.ok(receiver.published.length >= 2, 'receiver saw both RTMP publishes');
 
-  // ── logs exist and never contain the stream key ──
+  // ── logs exist and never contain the stream keys ──
   res = await client.call(`/api/streams/${stream.id}/logs`);
   const logBlob = JSON.stringify(res.body);
   assert.equal(logBlob.includes('it-key'), false);
+  assert.equal(logBlob.includes('it-key-tw'), false);
   assert.ok(res.body.items.length > 3, 'stream logs were collected');
 
   // ── history reflects the completed stream ──
@@ -210,7 +237,7 @@ test('full API + streaming integration', async (t) => {
   res = await client.call('/api/dashboard');
   assert.equal(res.body.stats.completedStreams, 1);
   assert.equal(res.body.stats.videos, 1);
-  assert.equal(res.body.stats.connectedPlatforms, 1);
+  assert.equal(res.body.stats.connectedPlatforms, 3);
 
   // ── video delete blocked while an active stream uses it; allowed after ──
   res = await client.call(`/api/videos/${video.id}`, { method: 'DELETE' });

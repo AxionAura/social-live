@@ -8,6 +8,8 @@ import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import type { Platform, PlatformAdapter } from '@social-live/shared';
 import { facebookAdapter } from '@social-live/facebook';
+import { kickAdapter } from '@social-live/kick';
+import { twitchAdapter } from '@social-live/twitch';
 import { youtubeAdapter } from '@social-live/youtube';
 import { Database, createRepos } from '@social-live/database';
 import { resolveFfmpeg, resolveFfprobe } from '@social-live/streaming';
@@ -30,6 +32,8 @@ import type { ServerContext } from './types.js';
 const adapters: Record<Platform, PlatformAdapter> = {
   youtube: youtubeAdapter,
   facebook: facebookAdapter,
+  twitch: twitchAdapter,
+  kick: kickAdapter,
 };
 
 export interface BuildAppOptions {

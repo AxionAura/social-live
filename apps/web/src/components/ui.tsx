@@ -12,6 +12,8 @@ import {
   InputAdornment,
   Paper,
   Stack,
+  SvgIcon,
+  type SvgIconProps,
   TextField,
   Typography,
 } from '@mui/material';
@@ -70,9 +72,32 @@ export function PulseDot() {
   );
 }
 
+/** Brand glyphs not shipped by Material Icons (simple-icons paths). */
+function TwitchIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon viewBox="0 0 24 24" {...props}>
+      <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0 1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
+    </SvgIcon>
+  );
+}
+
+function KickIcon(props: SvgIconProps) {
+  return (
+    <SvgIcon viewBox="0 0 24 24" {...props}>
+      <path d="M1.5 0h21v7.5H15V15h7.5v7.5h-21V15H9V7.5H1.5z" />
+    </SvgIcon>
+  );
+}
+
 export function PlatformIcon({ platform, size = 20 }: { platform: Platform; size?: number }) {
   if (platform === 'youtube') {
     return <YouTube sx={{ fontSize: size, color: '#ff0000' }} />;
+  }
+  if (platform === 'twitch') {
+    return <TwitchIcon sx={{ fontSize: size, color: '#9146ff' }} />;
+  }
+  if (platform === 'kick') {
+    return <KickIcon sx={{ fontSize: size, color: '#53fc18' }} />;
   }
   return <Facebook sx={{ fontSize: size, color: '#1877f2' }} />;
 }

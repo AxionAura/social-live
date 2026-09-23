@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { DatabaseSync } from 'node:sqlite';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Database, createRepos } from '../../packages/database/dist/index.js';
+import { MIGRATIONS } from '../../packages/database/dist/migrations.js';
 import { hashPassword } from '../../apps/server/dist/lib/crypto.js';
 
 function freshDb() {
@@ -190,4 +193,51 @@ test('sqlite database file is created at custom path', () => {
   assert.ok(db.handle);
   db.close();
   rmSync(dir, { recursive: true, force: true });
+});
+
+test('v2 migration preserves destinations and allows new platforms', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'sl-mig-'));
+  try {
+    const handle = new DatabaseSync(join(dir, 'upgrade.db'));
+    handle.exec('PRAGMA foreign_keys = ON;');
+    // Simulate a v1-era database with real rows.
+    handle.exec('CREATE TABLE IF NOT EXISTS schema_version (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)');
+    handle.exec(MIGRATIONS.find((m) => m.version === 1).sql);
+    handle
+      .prepare('INSERT INTO schema_version (version, applied_at) VALUES (?, ?)')
+      .run(1, new Date().toISOString());
+    const ts = new Date().toISOString();
+    const uid = randomUUID();
+    handle
+      .prepare(
+        'INSERT INTO users (id, username, email, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      )
+      .run(uid, 'admin', '', 'hash', ts, ts);
+    const did = randomUUID();
+    handle
+      .prepare(
+        "INSERT INTO destinations (id, user_id, platform, name, encrypted_credentials, status, created_at, updated_at) VALUES (?, ?, 'youtube', ?, ?, 'CONNECTED', ?, ?)",
+      )
+      .run(did, uid, 'Legacy YT', 'enc-creds', ts, ts);
+
+    // Apply the real upgrade path (everything after v1).
+    for (const migration of MIGRATIONS.filter((m) => m.version > 1)) {
+      handle.exec(migration.sql);
+    }
+
+    const rows = handle.prepare('SELECT id, user_id, platform, name FROM destinations').all();
+    assert.equal(rows.length, 1, 'legacy destination survived the rebuild');
+    assert.equal(rows[0].platform, 'youtube');
+    assert.equal(rows[0].id, did);
+
+    handle
+      .prepare(
+        'INSERT INTO destinations (id, user_id, platform, name, encrypted_credentials, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      )
+      .run(randomUUID(), uid, 'twitch', 'TW', 'enc', ts, ts);
+    assert.equal(handle.prepare('SELECT COUNT(*) AS c FROM destinations').get().c, 2);
+    handle.close();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

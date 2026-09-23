@@ -1,7 +1,7 @@
 {
-  "name": "@social-live/streaming",
+  "name": "@social-live/kick",
   "version": "0.2.0",
-  "description": "FFmpeg streaming engine for SocialLive: process management, reconnect, monitoring",
+  "description": "Kick platform adapter for SocialLive",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
@@ -20,7 +20,6 @@
     "@social-live/shared": "*"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
     "typescript": "^5.7.0"
   }
 }

@@ -31,6 +31,14 @@ test('destination schema validates stream key charset and url protocol', () => {
   );
   assert.equal(
     createDestinationSchema.safeParse({ platform: 'twitch', name: 'T', streamKey: 'abcd-1234' }).success,
+    true,
+  );
+  assert.equal(
+    createDestinationSchema.safeParse({ platform: 'kick', name: 'K', streamKey: 'abcd-1234' }).success,
+    true,
+  );
+  assert.equal(
+    createDestinationSchema.safeParse({ platform: 'myspace', name: 'M', streamKey: 'abcd-1234' }).success,
     false,
   );
   assert.equal(
