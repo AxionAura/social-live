@@ -192,7 +192,9 @@ See `CONTRIBUTING.md` and `docs/developer.md` for details.
 
 ## 📄 License
 
-MIT License — see `LICENSE` for details.
+[AGPL-3.0-or-later](LICENSE) — free for everyone to use, study, modify, and self-host.
+
+Copyleft, on purpose: if you modify SocialLive and offer it as a hosted service, you must share your modified source code. That keeps every fork as open as the original — no one gets locked out. Regular self-hosting (personal or commercial) requires nothing from you.
 
 ---
 

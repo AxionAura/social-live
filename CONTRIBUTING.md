@@ -114,4 +114,4 @@ See `SECURITY.md` for responsible disclosure process.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project's license (MIT — see `LICENSE`).
+By contributing, you agree that your contributions will be licensed under the project's license (AGPL-3.0-or-later — see `LICENSE`).

@@ -2,7 +2,7 @@
   "name": "@social-live/database",
   "version": "0.1.0",
   "description": "SQLite data layer and migrations for SocialLive (uses node:sqlite, no native modules)",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

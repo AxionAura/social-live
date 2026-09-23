@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Changed
+- **License**: MIT → **AGPL-3.0-or-later**. Copyleft protects the project from closed-source hosted forks: anyone modifying SocialLive and serving it over a network must publish their changes. Self-hosting (personal or commercial) is unaffected.
+
 ## [0.1.0] - 2026-09-23
 
 ### Added

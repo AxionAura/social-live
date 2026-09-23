@@ -2,7 +2,7 @@
   "name": "@social-live/server",
   "version": "0.1.0",
   "description": "SocialLive API server: auth, uploads, stream orchestration, scheduler, SSE",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
