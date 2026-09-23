@@ -44,6 +44,7 @@ $script:AxPurple = "$esc[38;2;168;85;247m"
 $script:AxFuchsia= "$esc[38;2;217;70;239m"
 $script:AxFg     = "$esc[38;2;230;237;243m"
 $script:AxMuted  = "$esc[38;2;139;148;158m"
+$script:AxDIM   = "$esc[38;2;48;54;61m"
 $script:AxOk     = "$esc[38;2;63;185;80m"
 $script:AxErr    = "$esc[38;2;248;81;73m"
 $script:AxBold   = "$esc[1m"
@@ -63,16 +64,27 @@ function Initialize-Axion {
   param([string]$Project = 'AxionInstaller', [string]$Tagline = 'Open source by default. Free for everyone.')
   $script:AxProject = $Project
   $script:AxTagline = $Tagline
-  # ANSI/VT সাপোর্ট ও interactive host যাচাই
-  $script:AxTty = ($env:TERM -ne 'dumb' -and -not [Console]::IsOutputRedirected)
+  $script:AxTty = $false
   try {
-    if ($Host.UI.SupportsVirtualTerminal -or $env:WT_SESSION) {
-      [Console]::Write("$esc[?25l") | Out-Null
-    } else { $script:AxTty = $false }
+    if (-not [Console]::IsOutputRedirected) {
+      # conhost-এ ANSI/VT enable — Windows Terminal-এ এটা ইতিমধ্যেই থাকে
+      if (-not ('Win32.AxK32' -as [type])) {
+        Add-Type -MemberDefinition @'
+[DllImport("kernel32.dll", SetLastError=true)] public static extern IntPtr GetStdHandle(int nStdHandle);
+[DllImport("kernel32.dll", SetLastError=true)] public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+[DllImport("kernel32.dll", SetLastError=true)] public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+'@ -Name 'AxK32' -Namespace 'Win32' | Out-Null
+      }
+      $h = [Win32.AxK32]::GetStdHandle(-11)
+      $mode = [uint32]0
+      if ([Win32.AxK32]::GetConsoleMode($h, [ref]$mode) -and [Win32.AxK32]::SetConsoleMode($h, $mode -bor 0x0004)) {
+        $script:AxTty = $true   # 0x0004 = ENABLE_VIRTUAL_TERMINAL_PROCESSING
+      }
+    }
   } catch { $script:AxTty = $false }
   # non-TTY/CI হলে সব রঙ খালি — প্লেইন লগ নিশ্চিত
   if (-not $script:AxTty) {
-    foreach ($v in 'Indigo','Violet','Purple','Fuchsia','Fg','Muted','Ok','Err','Bold','Reset') {
+    foreach ($v in 'Indigo','Violet','Purple','Fuchsia','Fg','Muted','Ok','Err','Bold','Reset','Dim') {
       Set-Variable -Name "Ax$v" -Value '' -Scope Script
     }
   }
@@ -97,14 +109,14 @@ function Write-AxionBanner {
   }
   Write-Host @"
 
-$AxDim        ·────────·
-       ╱    $AxPurple●$AxDim     ╲
-      $AxIndigo●$AxDim──────┼──────$AxFuchsia●$AxDim
+$AxDIM        ·────────·
+       ╱    $AxPurple●$AxDIM     ╲
+      $AxIndigo●$AxDIM──────┼──────$AxFuchsia●$AxDIM
        ╲          ╱
         ·────────·$AxReset
 
 "@
-  Write-Host "$AxBold$AxIndigo  Axion$AxPurpleAura$AxFg  $AxReset$AxMutedpresents$AxReset"
+  Write-Host "$AxBold$AxIndigo  Axion${AxPurple}Aura$AxFg  $AxReset${AxMuted}presents$AxReset"
   Write-Host "$AxBold$AxFg  $AxProject$AxReset  $AxMuted$AxTagline$AxReset`n"
 }
 
@@ -131,10 +143,10 @@ function Invoke-AxionStep {
     $frame = $AxFrames[$script:AxFrameIx % $AxFrames.Count]
     $script:AxFrameIx++
     $b = $AxSpin[$si % $AxSpin.Length]; $si++
-    $lit = $frame -replace '●', "$AxPurple●$AxDim"
+    $lit = $frame -replace '●', "$AxPurple●$AxDIM"
     Write-Host "$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K`r" -NoNewline
-    Write-Host "$AxDim  ────────────────────────────$AxReset"
-    Write-Host "$AxDim$lit$AxReset"
+    Write-Host "$AxDIM  ────────────────────────────$AxReset"
+    Write-Host "$AxDIM$lit$AxReset"
     Write-Host "$AxViolet$b$AxReset $AxFg$Label$AxReset $AxMuted…$AxReset" -NoNewline
     Start-Sleep -Milliseconds 120
   }
@@ -149,7 +161,7 @@ function Invoke-AxionStep {
 
 function Complete-Axion {
   param([string[]]$Lines)
-  Write-Host "$AxDim  ────────────────────────────$AxReset"
+  Write-Host "$AxDIM  ────────────────────────────$AxReset"
   Write-Host "$AxOk  ✔$AxBold$AxFg  $AxProject is ready$AxReset"
   foreach ($l in $Lines) { Write-Host "$AxMuted  · $AxFg$l$AxReset" }
   Write-Host "$AxViolet  ── AxionAura · Open source by default. Free for everyone. ──$AxReset`n"
@@ -197,6 +209,10 @@ if ($Update) {
 }
 
 # ────────────────────────── Node.js runtime ──────────────────────────
+# আগের install-এর runtime থাকলে PATH-এ বসাও — re-run দ্রুত হবে
+if (Test-Path "$RuntimeDir\node.exe") { $env:Path = "$RuntimeDir;$env:Path" }
+if (Test-Path "$RuntimeDir\ffmpeg.exe") { $env:Path = "$RuntimeDir;$env:Path" }
+
 function Test-NodeOk {
   try {
     $v = & node -v 2>$null
