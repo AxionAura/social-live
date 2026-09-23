@@ -128,20 +128,27 @@ axion_step() {
   fi
   "$@" >"$tmplog" 2>&1 &
   local pid=$! rc
+  # প্রতি ইটারেশনে ঠিক ৭ লাইন ছাপা হয় (divider + ৫-লাইনের পরমাণু + label)
+  # তাই ঠিক ৭ লাইনই মুছতে হয় — কম মুছলে frame গুলো স্তূপ হয়ে যায়
+  local clr=$'\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\r'
   local spin='⠋⠙⠹⠸⠼⠴⠦⠧' si=0
   printf '\033[?25l'                                  # hide cursor
+  local frame="${AX_FRAMES[$((AX_FI % ${#AX_FRAMES[@]}))]}"; AX_FI=$((AX_FI + 1))
+  printf '%b\n' "${AX_C_DIM}  ────────────────────────────${AX_RESET}"
+  printf '%b\n' "$(printf '%b' "${AX_C_DIM}${frame}${AX_RESET}" | sed $'s/●/\033[38;2;168;85;247m●\033[38;2;48;54;61m/g')"
+  printf '%b\n' "${AX_C_VIOLET}${spin:0:1}${AX_RESET} ${AX_C_FG}${label}${AX_RESET} ${AX_C_MUTED}…"
   while kill -0 "$pid" 2>/dev/null; do
-    local frame="${AX_FRAMES[$((AX_FI % ${#AX_FRAMES[@]}))]}"
-    AX_FI=$((AX_FI + 1))
+    sleep 0.12
     local b="${spin:$((si % ${#spin})):1}"; si=$((si + 1))
-    printf '\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\r'
+    frame="${AX_FRAMES[$((AX_FI % ${#AX_FRAMES[@]}))]}"; AX_FI=$((AX_FI + 1))
+    printf '%b' "$clr"
     printf '%b\n' "${AX_C_DIM}  ────────────────────────────${AX_RESET}"
-    printf '%b\n' "$(printf '%b' "${AX_C_DIM}${frame}${AX_RESET}" \
-      | sed $'s/●/\033[38;2;168;85;247m●\033[38;2;48;54;61m/g')"
+    printf '%b\n' "$(printf '%b' "${AX_C_DIM}${frame}${AX_RESET}" | sed $'s/●/\033[38;2;168;85;247m●\033[38;2;48;54;61m/g')"
     printf '%b\n' "${AX_C_VIOLET}${b}${AX_RESET} ${AX_C_FG}${label}${AX_RESET} ${AX_C_MUTED}…"
   done
   wait "$pid"; rc=$?
-  printf '\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\r\033[?25h'
+  printf '%b' "$clr"
+  printf '\033[?25h'
   if [ $rc -eq 0 ]; then
     axion_ok "$label"
   else
@@ -316,6 +323,15 @@ else
 fi
 
 # ────────────────────────── FFmpeg ──────────────────────────
+if [ -n "$SUDO" ]; then
+  if sudo -n true 2>/dev/null; then
+    info "Sudo: passwordless ✓"
+  else
+    info "System packages need your sudo password (asked once, cached ~15 min)"
+    sudo -v || warn "Sudo failed — will fall back to user-local downloads where possible."
+  fi
+fi
+
 if have ffmpeg; then
   info "FFmpeg $(ffmpeg -version 2>/dev/null | head -1 | cut -d' ' -f3) found — OK"
 else
@@ -324,12 +340,12 @@ else
     termux|brew)
             pkg_install ffmpeg || die "Could not install FFmpeg via $PKG. Install it manually and re-run." ;;
     *)
-            if [ -n "$SUDO" ] || [ "$(id -u)" = "0" ]; then
-              info "Installing FFmpeg via $PKG (needs sudo for system packages)"
-              pkg_install ffmpeg || die "Could not install FFmpeg via $PKG. Install it manually and re-run."
+            if [ "$(id -u)" = "0" ] || sudo -n true 2>/dev/null; then
+              axion_step "Installing FFmpeg (system package via $PKG)" pkg_install ffmpeg \
+                || die "Could not install FFmpeg via $PKG. Install it manually and re-run."
             else
-              warn "FFmpeg is missing and sudo is unavailable."
-              die "Install FFmpeg (e.g. 'sudo $PKG install ffmpeg') and re-run this installer."
+              warn "FFmpeg is missing and sudo needs a password."
+              die "Run 'sudo $PKG install ffmpeg' first (or re-run this installer and enter your password)."
             fi ;;
   esac
   have ffmpeg || die "FFmpeg still not found — install it manually and re-run."
