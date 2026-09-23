@@ -236,7 +236,8 @@ export default function DestinationsPage() {
 
       <Dialog open={formOpen} onClose={() => setFormOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editingId ? 'Edit destination' : 'Add destination'}</DialogTitle>
-        <DialogContent sx={{ display: 'grid', gap: 2, pt: 1 }}>
+        {/* MUI v7 zeroes the top padding after a DialogTitle; the outlined label needs room. */}
+        <DialogContent sx={{ display: 'grid', gap: 2, '&&': { pt: 2 } }}>
           {formError ? <Alert severity="error">{formError}</Alert> : null}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
@@ -244,7 +245,7 @@ export default function DestinationsPage() {
               label="Platform"
               value={form.platform}
               onChange={(event) => setForm({ ...form, platform: event.target.value as Platform })}
-              sx={{ width: { sm: 200 } }}
+              sx={{ width: { sm: 200 }, flexShrink: 0 }}
               disabled={Boolean(editingId)}
             >
               {(Object.keys(PLATFORM_META) as Platform[]).map((platform) => (

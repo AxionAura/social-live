@@ -132,7 +132,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   /* ── SPA static files ── */
   const webDist = config.webDistDir;
   if (webDist && existsSync(join(webDist, 'index.html'))) {
-    await app.register(fastifyStatic, { root: webDist, wildcard: false });
+    // wildcard keeps the /* route resolving files per-request, so a rebuilt
+    // dashboard (new hashed assets) is picked up without a server restart.
+    await app.register(fastifyStatic, { root: webDist });
     app.setNotFoundHandler((req, reply) => {
       if (
         req.raw.url?.startsWith('/api/') ||

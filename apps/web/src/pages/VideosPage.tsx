@@ -334,7 +334,7 @@ export default function VideosPage() {
 
       <Dialog open={Boolean(renameTarget)} onClose={() => setRenameTarget(null)} maxWidth="xs" fullWidth>
         <DialogTitle>Rename video</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ '&&': { pt: 2 } }}>
           <TextField
             autoFocus
             fullWidth

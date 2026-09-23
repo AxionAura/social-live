@@ -24,24 +24,29 @@ const AuthContext = createContext<AuthContextValue>({
   refresh: async () => {},
 });
 
+/**
+ * Replace every cached query except the live auth-status query.
+ *
+ * Never call queryClient.clear() here while auth observers are mounted:
+ * clear() destroys the query objects the mounted hooks are subscribed to,
+ * so the UI stops receiving updates entirely. removeQueries() with a
+ * predicate keeps the auth query (and its observers) intact.
+ */
+function resetCacheKeepingAuth(queryClient: ReturnType<typeof useQueryClient>, status: AuthStatus): void {
+  queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'auth' });
+  queryClient.setQueryData<AuthStatus>(['auth', 'status'], status);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const query = useAuthStatus();
   const queryClient = useQueryClient();
 
-  const apply = useCallback(
-    (status: AuthStatus) => {
-      queryClient.setQueryData(['auth', 'status'], status);
-    },
-    [queryClient],
-  );
-
   const login = useCallback(
     async (username: string, password: string) => {
-      await api.post<{ user: SafeUser }>('/api/auth/login', { username, password });
-      await queryClient.invalidateQueries();
-      apply({ needsSetup: false, user: null }); // will be replaced by refreshed status
+      const { user } = await api.post<{ user: SafeUser }>('/api/auth/login', { username, password });
+      resetCacheKeepingAuth(queryClient, { needsSetup: false, user });
     },
-    [apply, queryClient],
+    [queryClient],
   );
 
   const setup = useCallback(
@@ -51,17 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: input.email ?? '',
         password: input.password,
       });
-      apply({ needsSetup: false, user });
+      resetCacheKeepingAuth(queryClient, { needsSetup: false, user });
     },
-    [apply],
+    [queryClient],
   );
 
   const logout = useCallback(async () => {
     await api.post('/api/auth/logout');
-    queryClient.clear();
-    apply({ needsSetup: false, user: null });
-    await queryClient.invalidateQueries();
-  }, [apply, queryClient]);
+    resetCacheKeepingAuth(queryClient, { needsSetup: false, user: null });
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
