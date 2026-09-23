@@ -4,6 +4,8 @@
 
 > **[AxionAura](https://github.com/AxionAura)** · Open source by default. Free for everyone.
 
+[![CI](https://github.com/AxionAura/social-live/actions/workflows/ci.yml/badge.svg)](https://github.com/AxionAura/social-live/actions/workflows/ci.yml)
+
 Broadcast recorded videos to **YouTube Live** and **Facebook Live** from a browser-based dashboard — while keeping your data, credentials, videos, and streaming infrastructure under your own control.
 
 No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, macOS, Android/Termux, Docker, VPS, or your laptop.
