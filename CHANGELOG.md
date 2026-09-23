@@ -35,7 +35,7 @@ Nothing yet.
 
 ### Changed
 - **License**: MIT → **AGPL-3.0-or-later**. Copyleft protects the project from closed-source hosted forks: anyone modifying SocialLive and serving it over a network must publish their changes. Self-hosting (personal or commercial) is unaffected.
-- **Database v2** — destinations table rebuilt without the hard-coded platform `CHECK` constraint (existing destinations and encrypted keys are preserved); platform validation now lives in the zod schema + platform adapters
+- **Database schema v2** — destinations table rebuilt without the hard-coded platform `CHECK` constraint (existing destinations and encrypted keys are preserved); platform validation now lives in the zod schema + platform adapters
 - **Build order** — root `npm run build` compiles `@social-live/shared` first so fresh clones build reliably on every npm version
 
 ### Fixed
