@@ -67,6 +67,18 @@ function Initialize-Axion {
   $script:AxTty = $false
   try {
     if (-not [Console]::IsOutputRedirected) {
+      # VT-সম্ভাবনা প্রি-চেক: এই console যদি VT রেন্ডারই না করতে পারে,
+      # probe-ও করা হবে না (probe-এর [6n লেখাটা তখন স্ক্রিনে আসত)
+      $vtLikely = $false
+      if ($env:WT_SESSION) { $vtLikely = $true }
+      elseif ($PSVersionTable.PSVersion.Major -ge 7) { $vtLikely = $true }
+      else {
+        try {
+          $vt = (Get-ItemProperty 'HKCU:\Console' -Name VirtualTerminalLevel -ErrorAction Stop).VirtualTerminalLevel
+          if ($vt -eq 1) { $vtLikely = $true }
+        } catch {}
+      }
+      if (-not $vtLikely) { return }
       # conhost-এ ANSI/VT enable — Windows Terminal-এ এটা ইতিমধ্যেই থাকে
       if (-not ('Win32.AxK32' -as [type])) {
         Add-Type -MemberDefinition @'
@@ -139,11 +151,11 @@ $AxDIM        ·────────·
 function Invoke-AxionStep {
   # Steps are fatal by default: a failed step stops the installer instead of
   # silently continuing with stale/broken state. Opt out with -NoFatal.
-  param([string]$Label, [scriptblock]$Script, [switch]$NoFatal)
+  param([string]$Label, [scriptblock]$Script, [object[]]$StepArgs = @(), [switch]$NoFatal)
   if (-not $AxTty) {
     Write-AxionInfo $Label
     try {
-      & $Script
+      & $Script @StepArgs
       $ok = ($null -eq $LASTEXITCODE -or $LASTEXITCODE -eq 0)
       if ($ok) { Write-AxionOk $Label } else { Write-AxionFail "$Label (exit $LASTEXITCODE)" }
       $script:AxLastStepOk = $ok
@@ -156,7 +168,7 @@ function Invoke-AxionStep {
       return
     }
   }
-  $job = Start-Job -ScriptBlock $Script
+  $job = Start-Job -ScriptBlock $Script -ArgumentList $StepArgs
   $si = 0
   Write-Host "$esc[?25l" -NoNewline
   while ($job.State -eq 'Running') {
@@ -247,15 +259,16 @@ if (-not ($Update -and (Test-Path $RuntimeDir))) {
     Write-Step "Node.js $(& node -v) found — OK (needs >= 22.13)"
   } else {
     Invoke-AxionStep -Label "Downloading Node.js v$NodeVersion (portable, no admin needed)" -Script {
+      param($ver, $rdir)
       $zip = "$env:TEMP\node-portable.zip"
-      Invoke-WebRequest -Uri "https://nodejs.org/dist/v$NodeVersion/node-v$NodeVersion-win-x64.zip" -OutFile $zip -UseBasicParsing
-      New-Item -ItemType Directory -Force -Path $RuntimeDir | Out-Null
+      Invoke-WebRequest -Uri "https://nodejs.org/dist/v$ver/node-v$ver-win-x64.zip" -OutFile $zip -UseBasicParsing
+      New-Item -ItemType Directory -Force -Path $rdir | Out-Null
       $tmp = "$env:TEMP\node-extract"
       if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
       Expand-Archive -Path $zip -DestinationPath $tmp -Force
-      Copy-Item "$tmp\node-v$NodeVersion-win-x64\*" $RuntimeDir -Recurse -Force
+      Copy-Item "$tmp\node-v$ver-win-x64\*" $rdir -Recurse -Force
       Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue
-    }
+    } -StepArgs @($NodeVersion, $RuntimeDir)
     $env:Path = "$RuntimeDir;$env:Path"
     Write-Info "Node.js $(& node -v) provisioned at $RuntimeDir"
   }
@@ -265,6 +278,7 @@ $env:Path = "$RuntimeDir;$env:Path"
 # ────────────────────────── FFmpeg runtime ──────────────────────────
 if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
   Invoke-AxionStep -Label 'Downloading FFmpeg (essential build, ~80 MB) — one time only' -Script {
+    param($rdir)
     $zip = "$env:TEMP\ffmpeg.zip"
     Invoke-WebRequest -Uri 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -OutFile $zip -UseBasicParsing
     $tmp = "$env:TEMP\ffmpeg-extract"
@@ -272,11 +286,11 @@ if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
     Expand-Archive -Path $zip -DestinationPath $tmp -Force
     $bin = Get-ChildItem $tmp -Recurse -Filter 'ffmpeg.exe' | Select-Object -First 1
     if (-not $bin) { throw 'ffmpeg.exe not found in archive' }
-    New-Item -ItemType Directory -Force -Path $RuntimeDir | Out-Null
-    Copy-Item $bin.FullName $RuntimeDir -Force
-    Copy-Item (Join-Path $bin.Directory 'ffprobe.exe') $RuntimeDir -Force
+    New-Item -ItemType Directory -Force -Path $rdir | Out-Null
+    Copy-Item $bin.FullName $rdir -Force
+    Copy-Item (Join-Path $bin.Directory 'ffprobe.exe') $rdir -Force
     Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue
-  }
+  } -StepArgs @($RuntimeDir)
   $env:Path = "$RuntimeDir;$env:Path"
   Write-Info "FFmpeg $(& ffmpeg -version | Select-Object -First 1) provisioned at $RuntimeDir"
 } else {
@@ -322,13 +336,15 @@ try {
   Initialize-Axion -Project 'SocialLive' -Tagline 'Self-hosted live streaming dashboard'
   Write-AxionBanner
   Invoke-AxionStep -Label 'Installing dependencies (npm ci)' -Script {
-    Set-Location $using:Dir; & npm.cmd ci --no-audit --no-fund
+    param($d)
+    Set-Location $d; & npm.cmd ci --no-audit --no-fund
     if ($LASTEXITCODE -ne 0) { throw 'npm ci failed' }
-  }
+  } -StepArgs @($Dir)
   Invoke-AxionStep -Label 'Building dashboard and server' -Script {
-    Set-Location $using:Dir; & npm.cmd run build
+    param($d)
+    Set-Location $d; & npm.cmd run build
     if ($LASTEXITCODE -ne 0) { throw 'build failed' }
-  }
+  } -StepArgs @($Dir)
 } finally { Pop-Location; $ErrorActionPreference = 'Stop' }
 
 # .env: port + data dir — secrets are auto-generated by the server on first start
