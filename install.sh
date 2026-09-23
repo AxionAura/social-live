@@ -21,7 +21,6 @@
 set -euo pipefail
 
 # ────────────────────────── configuration ──────────────────────────
-REPO_URL="https://github.com/AxionAura/social-live.git"
 NODE_VERSION="22.14.0"          # pinned nodejs.org runtime used when the system Node is too old
 REQUIRED_NODE_MAJOR=22
 REQUIRED_NODE_MINOR=13
@@ -128,7 +127,7 @@ install_node_tarball() {
   NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TARBALL}"
   info "Downloading Node.js v${NODE_VERSION} (${NODE_OS}-${NODE_ARCH}) → $RUNTIME_DIR"
   run mkdir -p "$RUNTIME_DIR"
-  run curl -fsSL "$NODE_URL" -o "$RUNTIME_DIR/$NODE_TARBALL"
+  fetch "$NODE_URL" "$RUNTIME_DIR/$NODE_TARBALL"
   run tar -xzf "$RUNTIME_DIR/$NODE_TARBALL" -C "$RUNTIME_DIR"
   run rm -f "$RUNTIME_DIR/$NODE_TARBALL"
   run ln -sfn "$RUNTIME_DIR/node-v${NODE_VERSION}-${NODE_OS}-${NODE_ARCH}/bin/node" "$RUNTIME_DIR/node"
@@ -173,18 +172,32 @@ else
   info "FFmpeg installed."
 fi
 
-# ────────────────────────── application ──────────────────────────
-have git || { info "Installing git"; pkg_install git || die "git is required to download SocialLive."; }
+# ────────────────────────── downloads ──────────────────────────
+# curl বা wget — যেটা পাওয়া যায়। দুটোই না থাকলে স্পষ্ট বার্তা।
+fetch() { # $1 = URL, $2 = output file
+  if have curl; then run curl -fsSL "$1" -o "$2"
+  elif have wget; then run wget -qO "$2" "$1"
+  else die "Neither curl nor wget was found. Install either one ('sudo $PKG install curl') and re-run."
+  fi
+}
 
-if [ -d "$INSTALL_DIR/.git" ]; then
-  info "Existing installation found at $INSTALL_DIR — updating"
-  run git -C "$INSTALL_DIR" fetch --depth 1 origin main
-  run git -C "$INSTALL_DIR" reset --hard origin/main
+# ────────────────────────── application ──────────────────────────
+# git-মুক্ত: সরাসরি সোর্স tarball নামানো হয় (Windows installer-এর মতোই)।
+# data/ (ডাটাবেজ, ভিডিও, encryption key) কখনোই ওভাররাইট হয় না।
+INSTALLER_URL="https://raw.githubusercontent.com/AxionAura/social-live/main/install.sh"
+SRC_URL="https://codeload.github.com/AxionAura/social-live/tar.gz/refs/heads/main"
+
+if [ -f "$INSTALL_DIR/package.json" ]; then
+  info "Existing installation found at $INSTALL_DIR — updating (your data stays safe)"
 else
   info "Downloading SocialLive → $INSTALL_DIR"
   run mkdir -p "$INSTALL_DIR"
-  run git clone --depth 1 "$REPO_URL" "$INSTALL_DIR"
 fi
+
+SRC="$INSTALL_DIR/.src.tar.gz"
+fetch "$SRC_URL" "$SRC"
+run tar -xzf "$SRC" -C "$INSTALL_DIR" --strip-components=1
+run rm -f "$SRC"
 
 info "Installing dependencies (npm ci) — a couple of minutes"
 run sh -c "cd '$INSTALL_DIR' && npm ci --no-audit --no-fund"
@@ -208,10 +221,10 @@ export PATH="$RUNTIME_DIR:\$PATH"
 cd "$INSTALL_DIR" || exit 1
 set -a; [ -f .env ] && . ./.env; set +a
 if [ "\${1:-}" = "update" ]; then
-  git fetch --depth 1 origin main && git reset --hard origin/main || exit 1
-  npm ci --no-audit --no-fund && npm run build || exit 1
-  node scripts/social-live.mjs restart || node scripts/social-live.mjs start
-  echo "Updated to $(git -C "$INSTALL_DIR" rev-parse --short HEAD 2>/dev/null || echo latest)."
+  # নতুন ইনস্টলার নিজেই সর্বশেষ সোর্স নামিয়ে রিবিল্ড করে (data/ অক্ষত)
+  if have curl; then curl -fsSL "$INSTALLER_URL" | bash -s -- --dir "$SOCIAL_LIVE_DIR" \${APP_PORT:+--port "\$APP_PORT"}
+  elif have wget; then wget -qO- "$INSTALLER_URL" | bash -s -- --dir "$SOCIAL_LIVE_DIR" \${APP_PORT:+--port "\$APP_PORT"}
+  else echo "curl or wget is required for update"; exit 1; fi
   exit 0
 fi
 exec node scripts/social-live.mjs "\$@"

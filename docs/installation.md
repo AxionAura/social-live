@@ -14,7 +14,7 @@ irm https://raw.githubusercontent.com/AxionAura/social-live/main/install.ps1 | i
 
 The script detects your OS and package manager, provisions Node.js (≥ 22.13) and
 FFmpeg if missing (user-local runtime download — asks for sudo only when a system
-package is the cleanest route), clones and builds SocialLive into `~/.social-live`,
+package is the cleanest route), downloads and builds SocialLive into `~/.social-live` (no git needed — only curl or wget),
 writes a `.env`, registers a background service and prints the dashboard URL.
 
 - Control command: `social-live start | stop | status | doctor | update`

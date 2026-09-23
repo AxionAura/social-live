@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Installer is now git-free** — Linux/macOS/Termux installer downloads source tarballs directly (only needs curl or wget; git removed as a dependency) and `social-live update` re-runs the latest installer while preserving `data/` untouched
 - **Windows one-line installer** (`install.ps1`) — PowerShell `irm | iex` on Windows 10/11: provisions portable Node.js and FFmpeg into `%USERPROFILE%\.social-live` (no admin rights), downloads/builds the app, registers a logon Scheduled Task, and installs a `social-live.cmd` control command with `update`/`-Uninstall`
 
 ## [0.3.0] - 2026-09-24
