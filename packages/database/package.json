@@ -1,6 +1,6 @@
 {
   "name": "@social-live/database",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "SQLite data layer and migrations for SocialLive (uses node:sqlite, no native modules)",
   "license": "AGPL-3.0-or-later",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "@social-live/twitch",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Twitch platform adapter for SocialLive",
   "license": "AGPL-3.0-or-later",
   "type": "module",
