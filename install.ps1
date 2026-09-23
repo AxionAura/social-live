@@ -77,8 +77,24 @@ function Initialize-Axion {
       }
       $h = [Win32.AxK32]::GetStdHandle(-11)
       $mode = [uint32]0
-      if ([Win32.AxK32]::GetConsoleMode($h, [ref]$mode) -and [Win32.AxK32]::SetConsoleMode($h, $mode -bor 0x0004)) {
-        $script:AxTty = $true   # 0x0004 = ENABLE_VIRTUAL_TERMINAL_PROCESSING
+      if (-not [Win32.AxK32]::GetConsoleMode($h, [ref]$mode)) { return }
+      if (-not [Win32.AxK32]::SetConsoleMode($h, $mode -bor 0x0004)) { return }  # 0x0004 = ENABLE_VT
+      # ধাপ ২: আসল প্রমাণ চাই — DSR probe (cursor position report এলেই VT কাজ করছে)
+      [Console]::Write("$esc[6n")
+      $sw = [Diagnostics.Stopwatch]::StartNew()
+      $resp = ''
+      while ($sw.ElapsedMilliseconds -lt 600) {
+        if ([Console]::KeyAvailable) {
+          $resp += [Console]::ReadKey($true).KeyChar
+          if ($resp -match '\d+;\d+R$') { break }
+        } else { Start-Sleep -Milliseconds 20 }
+      }
+      if ($resp -match '\d+;\d+R') {
+        $script:AxTty = $true
+      } else {
+        # VT ভাঙা — console mode restore করে প্লেইন মোডে নামো
+        [Win32.AxK32]::SetConsoleMode($h, $mode) | Out-Null
+        $script:AxTty = $false
       }
     }
   } catch { $script:AxTty = $false }
@@ -121,7 +137,9 @@ $AxDIM        ·────────·
 }
 
 function Invoke-AxionStep {
-  param([string]$Label, [scriptblock]$Script)
+  # Steps are fatal by default: a failed step stops the installer instead of
+  # silently continuing with stale/broken state. Opt out with -NoFatal.
+  param([string]$Label, [scriptblock]$Script, [switch]$NoFatal)
   if (-not $AxTty) {
     Write-AxionInfo $Label
     try {
@@ -129,10 +147,12 @@ function Invoke-AxionStep {
       $ok = ($null -eq $LASTEXITCODE -or $LASTEXITCODE -eq 0)
       if ($ok) { Write-AxionOk $Label } else { Write-AxionFail "$Label (exit $LASTEXITCODE)" }
       $script:AxLastStepOk = $ok
+      if (-not $ok -and -not $NoFatal) { throw "AxionInstaller step failed: $Label" }
       return
     } catch {
       Write-AxionFail "$Label — $_"
       $script:AxLastStepOk = $false
+      if (-not $NoFatal) { throw }
       return
     }
   }
@@ -157,6 +177,7 @@ function Invoke-AxionStep {
   if ($out) { $out | ForEach-Object { Write-Host "$AxMuted  | $_$AxReset" } }
   if ($ok) { Write-AxionOk $Label } else { Write-AxionFail "$Label (job $($job.State))" }
   $script:AxLastStepOk = $ok
+  if (-not $ok -and -not $NoFatal) { throw "AxionInstaller step failed: $Label" }
 }
 
 function Complete-Axion {
@@ -277,7 +298,14 @@ if ($Update) {
 # job-এর ভেতর থেকে parent scope-এ variable ফেরত যায় না
 Invoke-AxionStep -Label "Downloading SocialLive $tag" -Script {
   $zip = "$env:TEMP\social-live-src.zip"
-  Invoke-WebRequest -Uri "https://github.com/AxionAura/social-live/archive/refs/tags/$tag.zip" -OutFile $zip -UseBasicParsing
+  $last = $null
+  foreach ($try in 1..3) {                       # GitHub archive মাঝেমধ্যে flaky — ৩ বার চেষ্টা
+    try {
+      Invoke-WebRequest -Uri "https://github.com/AxionAura/social-live/archive/refs/tags/$tag.zip" -OutFile $zip -UseBasicParsing
+      $last = $null; break
+    } catch { $last = $_; Start-Sleep -Seconds (2 * $try) }
+  }
+  if ($last) { throw $last }
   $tmp = "$env:TEMP\social-live-src"
   if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
   Expand-Archive -Path $zip -DestinationPath $tmp -Force
