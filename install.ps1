@@ -252,23 +252,25 @@ try {
   $tag = (Invoke-RestMethod 'https://api.github.com/repos/AxionAura/social-live/releases/latest').tag_name
 } catch { Write-Warn2 'Could not read latest release tag — using main branch.' }
 
-$srcTmp = "$env:TEMP\social-live-src"
 if ($Update) {
-  Write-Step "Downloading SocialLive $tag and updating sources"
+  Write-Step "Updating SocialLive sources ($tag)"
 } else {
   Write-Step "Downloading SocialLive $tag → $Dir"
 }
+# পুরো ডাউনলোড+এক্সট্র্যাক্ট+কপি job-এর ভেতরে self-contained —
+# job-এর ভেতর থেকে parent scope-এ variable ফেরত যায় না
 Invoke-AxionStep -Label "Downloading SocialLive $tag" -Script {
   $zip = "$env:TEMP\social-live-src.zip"
   Invoke-WebRequest -Uri "https://github.com/AxionAura/social-live/archive/refs/tags/$tag.zip" -OutFile $zip -UseBasicParsing
-  $script:srcTmp = "$env:TEMP\social-live-src"
-  if (Test-Path $script:srcTmp) { Remove-Item $script:srcTmp -Recurse -Force }
-  Expand-Archive -Path $zip -DestinationPath $script:srcTmp -Force
+  $tmp = "$env:TEMP\social-live-src"
+  if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
+  Expand-Archive -Path $zip -DestinationPath $tmp -Force
+  $inner = Get-ChildItem $tmp -Directory | Select-Object -First 1
+  New-Item -ItemType Directory -Force -Path $Dir | Out-Null
+  # data/ (ডাটাবেজ, ভিডিও, encryption key) অক্ষত রেখে সোর্স রিপ্লেস
+  Get-ChildItem "$($inner.FullName)" -Exclude 'data' | Copy-Item -Destination $Dir -Recurse -Force
+  Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue
 }
-$inner = Get-ChildItem $srcTmp -Directory | Select-Object -First 1
-New-Item -ItemType Directory -Force -Path $Dir | Out-Null
-Get-ChildItem "$($inner.FullName)" -Exclude 'data' | Copy-Item -Destination $Dir -Recurse -Force
-Remove-Item $zip, $srcTmp -Recurse -Force -ErrorAction SilentlyContinue
 
 Push-Location $Dir
 try {
