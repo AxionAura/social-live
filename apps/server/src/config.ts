@@ -127,6 +127,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     allowPrivateRtmpTargets: env.ALLOW_PRIVATE_RTMP_TARGETS === 'true',
     logLevel,
     isProduction: env.NODE_ENV === 'production',
-    version: '0.2.0',
+    version: '0.2.1',
   };
 }

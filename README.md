@@ -6,6 +6,15 @@
 
 [![CI](https://github.com/AxionAura/social-live/actions/workflows/ci.yml/badge.svg)](https://github.com/AxionAura/social-live/actions/workflows/ci.yml)
 
+## 📸 Screenshots
+
+| | |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard-dark.png) | ![Live stream monitoring](docs/screenshots/stream-detail-dark.png) |
+| ![Multi-platform destinations](docs/screenshots/destinations-dark.png) | ![Video library](docs/screenshots/videos-dark.png) |
+
+**Dashboard** · live stream monitoring · multi-platform destinations (YouTube, Facebook, Twitch, Kick) · video library — light mode included, see [`docs/screenshots/`](docs/screenshots).
+
 Broadcast recorded videos to **YouTube Live**, **Facebook Live**, **Twitch**, and **Kick** from a browser-based dashboard — while keeping your data, credentials, videos, and streaming infrastructure under your own control.
 
 No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, macOS, Android/Termux, Docker, VPS, or your laptop.
