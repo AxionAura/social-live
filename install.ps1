@@ -14,6 +14,148 @@ param(
   [int]$Port = 3000,
   [string]$Dir = "$env:USERPROFILE\.social-live"
 )
+# ══ AxionInstaller v1 (auto-embedded — edit AxionInstaller/lib instead) ══
+# ══════════════════════════════════════════════════════════════════
+#  AxionInstaller — PowerShell UI library      v1.0 · AxionAura
+#  Branded terminal UI for Windows installers (Windows 10/11).
+#  Design tokens: indigo #6366f1 · violet #8b5cf6 · purple #a855f7 ·
+#  fuchsia #d946ef · bg #06090f · fg #e6edf3 · muted #8b949e
+#
+#  Public API:
+#    Initialize-Axion <Project Name> [Tagline]
+#    Invoke-AxionStep -Label "..." -Script { ... }   (atom spinner)
+#    Write-AxionInfo / Ok / Warn / Fail "msg"
+#    Write-AxionBanner
+#    Complete-Axion -Lines "a","b"
+#  Rules:
+#    • Call Initialize-Axion first. Non-interactive hosts fall back
+#      to plain logs automatically (CI safe).
+# ══════════════════════════════════════════════════════════════════
+
+$script:AxProject = 'AxionInstaller'
+$script:AxTagline = 'Open source by default. Free for everyone.'
+$script:AxTty     = $false
+$script:AxFrameIx = 0
+
+$script:AxEsc    = [char]27
+$script:AxIndigo = "$esc[38;2;99;102;241m"
+$script:AxViolet = "$esc[38;2;139;92;246m"
+$script:AxPurple = "$esc[38;2;168;85;247m"
+$script:AxFuchsia= "$esc[38;2;217;70;239m"
+$script:AxFg     = "$esc[38;2;230;237;243m"
+$script:AxMuted  = "$esc[38;2;139;148;158m"
+$script:AxOk     = "$esc[38;2;63;185;80m"
+$script:AxErr    = "$esc[38;2;248;81;73m"
+$script:AxBold   = "$esc[1m"
+$script:AxReset  = "$esc[0m"
+
+$script:AxFrames = @(
+"    ·────────·`n   ╱          ╲`n  ●────┼──────●`n   ╲          ╱`n    ·────────·",
+"    ·───●────·`n   ╱     │    ╲`n  ·─────┼─────●`n   ╲    │    ╱`n    ·────────·",
+"    ·──────·─·`n   ╱     │   ╲`n  ·──────┼────●`n   ╲    │    ╱`n    ·──●─────·",
+"    ·──────·─●`n   ╱     │   ╲`n  ·──────┼────·`n   ╲    │    ╱`n    ·──●─────·",
+"    ·──●─────·`n   ╱    │    ╲`n  ·─────┼─────·`n   ╲    │    ╱`n    ·────────●·",
+"    ·────────·`n   ╱    ●    ╲`n  ●─────┼─────·`n   ╲    │    ╱`n    ·────────·"
+)
+$script:AxSpin = '⠋⠙⠹⠸⠼⠴⠦⠧'
+
+function Initialize-Axion {
+  param([string]$Project = 'AxionInstaller', [string]$Tagline = 'Open source by default. Free for everyone.')
+  $script:AxProject = $Project
+  $script:AxTagline = $Tagline
+  # ANSI/VT সাপোর্ট ও interactive host যাচাই
+  $script:AxTty = ($env:TERM -ne 'dumb' -and -not [Console]::IsOutputRedirected)
+  try {
+    if ($Host.UI.SupportsVirtualTerminal -or $env:WT_SESSION) {
+      [Console]::Write("$esc[?25l") | Out-Null
+    } else { $script:AxTty = $false }
+  } catch { $script:AxTty = $false }
+  # non-TTY/CI হলে সব রঙ খালি — প্লেইন লগ নিশ্চিত
+  if (-not $script:AxTty) {
+    foreach ($v in 'Indigo','Violet','Purple','Fuchsia','Fg','Muted','Ok','Err','Bold','Reset') {
+      Set-Variable -Name "Ax$v" -Value '' -Scope Script
+    }
+  }
+}
+
+function Write-AxionInfo([string]$m) {
+  if ($AxTty) { Write-Host "$AxViolet●$AxFg $m$AxReset" } else { Write-Host "● $m" }
+}
+function Write-AxionOk([string]$m) {
+  if ($AxTty) { Write-Host "$AxOk✔$AxFg $m$AxReset" } else { Write-Host "✔ $m" }
+}
+function Write-AxionWarn([string]$m) {
+  if ($AxTty) { Write-Host "$AxFuchsia▲$AxFg $m$AxReset" } else { Write-Host "▲ $m" }
+}
+function Write-AxionFail([string]$m) {
+  if ($AxTty) { Write-Host "$AxErr✘$AxFg $m$AxReset" } else { Write-Host "✘ $m" }
+}
+
+function Write-AxionBanner {
+  if (-not $AxTty) {
+    Write-Host ("═" * 32); Write-Host "  $AxProject — $AxTagline"; Write-Host ("═" * 32); return
+  }
+  Write-Host @"
+
+$AxDim        ·────────·
+       ╱    $AxPurple●$AxDim     ╲
+      $AxIndigo●$AxDim──────┼──────$AxFuchsia●$AxDim
+       ╲          ╱
+        ·────────·$AxReset
+
+"@
+  Write-Host "$AxBold$AxIndigo  Axion$AxPurpleAura$AxFg  $AxReset$AxMutedpresents$AxReset"
+  Write-Host "$AxBold$AxFg  $AxProject$AxReset  $AxMuted$AxTagline$AxReset`n"
+}
+
+function Invoke-AxionStep {
+  param([string]$Label, [scriptblock]$Script)
+  if (-not $AxTty) {
+    Write-AxionInfo $Label
+    try {
+      & $Script
+      $ok = ($null -eq $LASTEXITCODE -or $LASTEXITCODE -eq 0)
+      if ($ok) { Write-AxionOk $Label } else { Write-AxionFail "$Label (exit $LASTEXITCODE)" }
+      $script:AxLastStepOk = $ok
+      return
+    } catch {
+      Write-AxionFail "$Label — $_"
+      $script:AxLastStepOk = $false
+      return
+    }
+  }
+  $job = Start-Job -ScriptBlock $Script
+  $si = 0
+  Write-Host "$esc[?25l" -NoNewline
+  while ($job.State -eq 'Running') {
+    $frame = $AxFrames[$script:AxFrameIx % $AxFrames.Count]
+    $script:AxFrameIx++
+    $b = $AxSpin[$si % $AxSpin.Length]; $si++
+    $lit = $frame -replace '●', "$AxPurple●$AxDim"
+    Write-Host "$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K`r" -NoNewline
+    Write-Host "$AxDim  ────────────────────────────$AxReset"
+    Write-Host "$AxDim$lit$AxReset"
+    Write-Host "$AxViolet$b$AxReset $AxFg$Label$AxReset $AxMuted…$AxReset" -NoNewline
+    Start-Sleep -Milliseconds 120
+  }
+  $out = Receive-Job $job 2>&1
+  $ok = ($job.State -eq 'Completed')
+  Remove-Job $job -Force -ErrorAction SilentlyContinue
+  Write-Host "$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K$esc[1A$esc[2K`r$esc[?25h" -NoNewline
+  if ($out) { $out | ForEach-Object { Write-Host "$AxMuted  | $_$AxReset" } }
+  if ($ok) { Write-AxionOk $Label } else { Write-AxionFail "$Label (job $($job.State))" }
+  $script:AxLastStepOk = $ok
+}
+
+function Complete-Axion {
+  param([string[]]$Lines)
+  Write-Host "$AxDim  ────────────────────────────$AxReset"
+  Write-Host "$AxOk  ✔$AxBold$AxFg  $AxProject is ready$AxReset"
+  foreach ($l in $Lines) { Write-Host "$AxMuted  · $AxFg$l$AxReset" }
+  Write-Host "$AxViolet  ── AxionAura · Open source by default. Free for everyone. ──$AxReset`n"
+}
+
+# ══ end AxionInstaller ══
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'   # much faster Invoke-WebRequest
@@ -23,10 +165,10 @@ $NodeVersion = '22.14.0'
 $RepoUrl      = 'https://github.com/AxionAura/social-live'
 $RuntimeDir   = Join-Path $Dir 'runtime'
 
-function Write-Step([string]$msg)  { Write-Host "`n[install] $msg" -ForegroundColor Cyan }
-function Write-Info([string]$msg)  { Write-Host "[install] $msg" }
-function Write-Warn2([string]$msg) { Write-Host "[warn] $msg" -ForegroundColor Yellow }
-function Die([string]$msg)         { Write-Host "[error] $msg" -ForegroundColor Red; exit 1 }
+function Write-Step([string]$msg)  { Write-AxionInfo $msg }
+function Write-Info([string]$msg)  { Write-AxionInfo $msg }
+function Write-Warn2([string]$msg) { Write-AxionWarn $msg }
+function Die([string]$msg)         { Write-AxionFail $msg; exit 1 }
 
 function Get-LatestHtml([string]$url, [string]$out) {
   Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing
@@ -67,15 +209,16 @@ if (-not ($Update -and (Test-Path $RuntimeDir))) {
   if (Test-NodeOk) {
     Write-Step "Node.js $(& node -v) found — OK (needs >= 22.13)"
   } else {
-    Write-Step "Downloading Node.js v$NodeVersion (portable, no admin needed)"
-    $zip = "$env:TEMP\node-portable.zip"
-    Get-LatestHtml "https://nodejs.org/dist/v$NodeVersion/node-v$NodeVersion-win-x64.zip" $zip
-    New-Item -ItemType Directory -Force -Path $RuntimeDir | Out-Null
-    $tmp = "$env:TEMP\node-extract"
-    if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
-    Expand-Archive -Path $zip -DestinationPath $tmp -Force
-    Copy-Item "$tmp\node-v$NodeVersion-win-x64\*" $RuntimeDir -Recurse -Force
-    Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue
+    Invoke-AxionStep -Label "Downloading Node.js v$NodeVersion (portable, no admin needed)" -Script {
+      $zip = "$env:TEMP\node-portable.zip"
+      Invoke-WebRequest -Uri "https://nodejs.org/dist/v$NodeVersion/node-v$NodeVersion-win-x64.zip" -OutFile $zip -UseBasicParsing
+      New-Item -ItemType Directory -Force -Path $RuntimeDir | Out-Null
+      $tmp = "$env:TEMP\node-extract"
+      if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
+      Expand-Archive -Path $zip -DestinationPath $tmp -Force
+      Copy-Item "$tmp\node-v$NodeVersion-win-x64\*" $RuntimeDir -Recurse -Force
+      Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue
+    }
     $env:Path = "$RuntimeDir;$env:Path"
     Write-Info "Node.js $(& node -v) provisioned at $RuntimeDir"
   }
@@ -84,18 +227,19 @@ $env:Path = "$RuntimeDir;$env:Path"
 
 # ────────────────────────── FFmpeg runtime ──────────────────────────
 if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
-  Write-Step "Downloading FFmpeg (essential build, ~80 MB) — one time only"
-  $zip = "$env:TEMP\ffmpeg.zip"
-  Get-LatestHtml 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' $zip
-  $tmp = "$env:TEMP\ffmpeg-extract"
-  if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
-  Expand-Archive -Path $zip -DestinationPath $tmp -Force
-  $bin = Get-ChildItem $tmp -Recurse -Filter 'ffmpeg.exe' | Select-Object -First 1
-  if (-not $bin) { Die 'FFmpeg archive extracted but ffmpeg.exe not found.' }
-  New-Item -ItemType Directory -Force -Path $RuntimeDir | Out-Null
-  Copy-Item $bin.FullName $RuntimeDir -Force
-  Copy-Item (Join-Path $bin.Directory 'ffprobe.exe') $RuntimeDir -Force
-  Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue
+  Invoke-AxionStep -Label 'Downloading FFmpeg (essential build, ~80 MB) — one time only' -Script {
+    $zip = "$env:TEMP\ffmpeg.zip"
+    Invoke-WebRequest -Uri 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -OutFile $zip -UseBasicParsing
+    $tmp = "$env:TEMP\ffmpeg-extract"
+    if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
+    Expand-Archive -Path $zip -DestinationPath $tmp -Force
+    $bin = Get-ChildItem $tmp -Recurse -Filter 'ffmpeg.exe' | Select-Object -First 1
+    if (-not $bin) { throw 'ffmpeg.exe not found in archive' }
+    New-Item -ItemType Directory -Force -Path $RuntimeDir | Out-Null
+    Copy-Item $bin.FullName $RuntimeDir -Force
+    Copy-Item (Join-Path $bin.Directory 'ffprobe.exe') $RuntimeDir -Force
+    Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue
+  }
   $env:Path = "$RuntimeDir;$env:Path"
   Write-Info "FFmpeg $(& ffmpeg -version | Select-Object -First 1) provisioned at $RuntimeDir"
 } else {
@@ -114,26 +258,31 @@ if ($Update) {
 } else {
   Write-Step "Downloading SocialLive $tag → $Dir"
 }
-$zip = "$env:TEMP\social-live-src.zip"
-Get-LatestHtml "https://github.com/AxionAura/social-live/archive/refs/tags/$tag.zip" $zip
-if (Test-Path $srcTmp) { Remove-Item $srcTmp -Recurse -Force }
-Expand-Archive -Path $zip -DestinationPath $srcTmp -Force
+Invoke-AxionStep -Label "Downloading SocialLive $tag" -Script {
+  $zip = "$env:TEMP\social-live-src.zip"
+  Invoke-WebRequest -Uri "https://github.com/AxionAura/social-live/archive/refs/tags/$tag.zip" -OutFile $zip -UseBasicParsing
+  $script:srcTmp = "$env:TEMP\social-live-src"
+  if (Test-Path $script:srcTmp) { Remove-Item $script:srcTmp -Recurse -Force }
+  Expand-Archive -Path $zip -DestinationPath $script:srcTmp -Force
+}
 $inner = Get-ChildItem $srcTmp -Directory | Select-Object -First 1
-
 New-Item -ItemType Directory -Force -Path $Dir | Out-Null
-# নতুন সোর্স কপি — data/ (ডাটাবেজ, ভিডিও, key) অক্ষত রেখে
 Get-ChildItem "$($inner.FullName)" -Exclude 'data' | Copy-Item -Destination $Dir -Recurse -Force
 Remove-Item $zip, $srcTmp -Recurse -Force -ErrorAction SilentlyContinue
 
-Write-Step 'Installing dependencies (npm ci) — a couple of minutes'
 Push-Location $Dir
 try {
   $ErrorActionPreference = 'Continue'   # npm writes to stderr; don't turn that into a terminating error
-  & npm.cmd ci --no-audit --no-fund
-  if ($LASTEXITCODE -ne 0) { Die 'npm ci failed.' }
-  Write-Step 'Building (typecheck + web bundle + server) — a minute or two'
-  & npm.cmd run build
-  if ($LASTEXITCODE -ne 0) { Die 'build failed.' }
+  Initialize-Axion -Project 'SocialLive' -Tagline 'Self-hosted live streaming dashboard'
+  Write-AxionBanner
+  Invoke-AxionStep -Label 'Installing dependencies (npm ci)' -Script {
+    Set-Location $using:Dir; & npm.cmd ci --no-audit --no-fund
+    if ($LASTEXITCODE -ne 0) { throw 'npm ci failed' }
+  }
+  Invoke-AxionStep -Label 'Building dashboard and server' -Script {
+    Set-Location $using:Dir; & npm.cmd run build
+    if ($LASTEXITCODE -ne 0) { throw 'build failed' }
+  }
 } finally { Pop-Location; $ErrorActionPreference = 'Stop' }
 
 # .env: port + data dir — secrets are auto-generated by the server on first start
@@ -173,7 +322,9 @@ node apps\server\dist\index.js
 
 # ────────────────────────── autostart + launch ──────────────────────────
 if (-not $NoService) {
-  Write-Step 'Registering Scheduled Task (starts with Windows, hidden window)'
+  Initialize-Axion -Project 'SocialLive' -Tagline 'Self-hosted live streaming dashboard'
+Write-AxionBanner
+Write-Step 'Registering Scheduled Task (starts with Windows, hidden window)'
   $action  = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$Dir\start-server.ps1`""
   $trigger = New-ScheduledTaskTrigger -AtLogOn
   Register-ScheduledTask -TaskName 'SocialLive' -Action $action -Trigger $trigger -Force | Out-Null
@@ -192,11 +343,13 @@ foreach ($i in 1..20) {
 
 Start-Process "http://localhost:$Port"
 Write-Host ''
-Write-Step '──────────── SocialLive is ready ────────────'
-if ($ok) { Write-Info "Dashboard:   http://localhost:$Port  (opened in your browser)" }
-else     { Write-Warn2 "Server is warming up — open http://localhost:$Port in a moment." }
-Write-Info "Install dir: $Dir"
-Write-Info 'First step:  create the admin account, add a destination, upload a video.'
-Write-Info 'Update:      social-live update        Uninstall: reinstall this script with -Uninstall'
-Write-Warn2 'If Windows asks about firewall access for Node.js — click Allow (private networks).'
-Write-Info "Keys live in $Dir\data\config\ — back that folder up."
+if ($ok) { Write-AxionOk "Dashboard:   http://localhost:$Port  (opened in your browser)" }
+else     { Write-AxionWarn "Server is warming up — open http://localhost:$Port in a moment." }
+Complete-Axion -Lines @(
+  "Install dir: $Dir",
+  'First step:  create the admin account, add a destination, upload a video',
+  'Update:      social-live update',
+  'Uninstall:   reinstall install.ps1 with -Uninstall',
+  'Firewall:    if Windows asks about Node.js — click Allow (private networks)',
+  "Keys:        $Dir\data\config\ — back that folder up"
+)

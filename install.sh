@@ -19,6 +19,169 @@
 #
 # Environment overrides: SOCIAL_LIVE_DIR, APP_PORT, SKIP_SERVICE=1, DRY_RUN=1
 set -euo pipefail
+# ══ AxionInstaller v1 (auto-embedded — edit AxionInstaller/lib instead) ══
+#!/usr/bin/env bash
+# ══════════════════════════════════════════════════════════════════
+#  AxionInstaller — bash UI library          v1.0 · AxionAura
+#  Branded terminal UI for project installers.
+#  Design tokens: indigo #6366f1 · violet #8b5cf6 · purple #a855f7 ·
+#  fuchsia #d946ef · bg #06090f · fg #e6edf3 · muted #8b949e
+#
+#  Public API:
+#    axion_init  <Project Name> [Tagline]
+#    axion_step  "label"  <command args...>     (runs cmd, atom spinner)
+#    axion_info / axion_ok / axion_warn / axion_fail "msg"
+#    axion_banner                                (big atom + wordmark)
+#    axion_done  "line1" ["line2" ...]           (summary card)
+#  Rules:
+#    • Call axion_init first. Non-TTY output falls back to plain logs
+#      automatically (CI / piped output safe).
+#    • Long work goes through axion_step — never bare echo during work.
+# ══════════════════════════════════════════════════════════════════
+
+# ── AxionInstaller palette (truecolor; falls back gracefully) ──
+AX_C_INDIGO='\033[38;2;99;102;241m'
+AX_C_VIOLET='\033[38;2;139;92;246m'
+AX_C_PURPLE='\033[38;2;168;85;247m'
+AX_C_FUCHSIA='\033[38;2;217;70;239m'
+AX_C_FG='\033[38;2;230;237;243m'
+AX_C_MUTED='\033[38;2;139;148;158m'
+AX_C_OK='\033[38;2;63;185;80m'
+AX_C_ERR='\033[38;2;248;81;73m'
+AX_C_DIM='\033[38;2;48;54;61m'
+AX_C_BOLD='\033[1m'
+AX_RESET='\033[0m'
+
+AX_PROJECT=""
+AX_TTY=0
+
+axion_init() {
+  AX_PROJECT="${1:-AxionInstaller}"
+  AX_TAGLINE="${2:-Open source by default. Free for everyone.}"
+  if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then AX_TTY=1; fi
+}
+
+_ax() { if [ "$AX_TTY" = "1" ]; then printf '%b' "$1"; else printf '%b' "$2"; fi; }
+
+axion_info() { _ax "${AX_C_VIOLET}●${AX_C_FG} $*${AX_RESET}\n" "● $*\n"; }
+axion_ok()   { _ax "${AX_C_OK}✔${AX_C_FG} $*${AX_RESET}\n" "✔ $*\n"; }
+axion_warn() { _ax "${AX_C_FUCHSIA}▲${AX_C_FG} $*${AX_RESET}\n" "▲ $*\n"; }
+axion_fail() { _ax "${AX_C_ERR}✘${AX_C_FG} $*${AX_RESET}\n" "✘ $*\n"; }
+
+# ── The atom: 6 frames, electrons orbiting three gradient orbitals ──
+# Each frame is 5 lines; electrons ● ride the orbital ring.
+AX_FRAMES=(
+'    ·────────·
+   ╱          ╲
+  ●────┼──────●
+   ╲          ╱
+    ·────────·'
+'    ·───●────·
+   ╱     │    ╲
+  ·─────┼─────●
+   ╲    │    ╱
+    ·────────·'
+'    ·──────·─·
+   ╱     │   ╲
+  ·──────┼────●
+   ╲    │    ╱
+    ·──●─────·'
+'    ·──────·─●
+   ╱     │   ╲
+  ·──────┼────·
+   ╲    │    ╱
+    ·──●─────·'
+'    ·──●─────·
+   ╱    │    ╲
+  ·─────┼─────·
+   ╲    │    ╱
+    ·────────●·'
+'    ·────────·
+   ╱    ●    ╲
+  ●─────┼─────·
+   ╲    │    ╱
+    ·────────·'
+)
+AX_FI=0
+
+axion_atom_frame() {
+  # gradient-lit frame: orbital dim, electrons in AxionAura gradient
+  local f="${AX_FRAMES[$((AX_FI % ${#AX_FRAMES[@]}))]}"
+  AX_FI=$((AX_FI + 1))
+  _ax "${AX_C_DIM}${f//'─'/${AX_C_DIM}─${AX_C_DIM}}${AX_RESET}" "${f}\n"
+}
+
+# ── axion_step: run a command behind the orbiting atom ──
+# Output is captured; on failure the last lines are shown (debuggable UX).
+axion_step() {
+  local label="$1"; shift
+  local tmplog
+  tmplog="$(mktemp "${TMPDIR:-/tmp}/axion-step.XXXXXX")"
+  if [ "$AX_TTY" != "1" ]; then
+    axion_info "$label"
+    "$@" 2>&1 | tee "$tmplog"
+    local rc=${PIPESTATUS[0]}
+    rm -f "$tmplog"
+    [ $rc -eq 0 ] && return $rc
+    axion_fail "$label (exit $rc) — log above"
+    return $rc
+  fi
+  "$@" >"$tmplog" 2>&1 &
+  local pid=$! rc
+  local spin='⠋⠙⠹⠸⠼⠴⠦⠧' si=0
+  printf '\033[?25l'                                  # hide cursor
+  while kill -0 "$pid" 2>/dev/null; do
+    local frame="${AX_FRAMES[$((AX_FI % ${#AX_FRAMES[@]}))]}"
+    AX_FI=$((AX_FI + 1))
+    local b="${spin:$((si % ${#spin})):1}"; si=$((si + 1))
+    printf '\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\r'
+    printf '%b\n' "${AX_C_DIM}  ────────────────────────────${AX_RESET}"
+    printf '%b\n' "$(printf '%b' "${AX_C_DIM}${frame}${AX_RESET}" \
+      | sed $'s/●/\033[38;2;168;85;247m●\033[38;2;48;54;61m/g')"
+    printf '%b\n' "${AX_C_VIOLET}${b}${AX_RESET} ${AX_C_FG}${label}${AX_RESET} ${AX_C_MUTED}…"
+  done
+  wait "$pid"; rc=$?
+  printf '\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\033[1A\033[2K\r\033[?25h'
+  if [ $rc -eq 0 ]; then
+    axion_ok "$label"
+  else
+    axion_fail "$label (exit $rc)"
+    axion_warn 'last output lines:'
+    tail -n 12 "$tmplog" | sed 's/^/    /'
+  fi
+  rm -f "$tmplog"
+  return $rc
+}
+
+# ── banner: gradient wordmark + atom ──
+axion_banner() {
+  if [ "$AX_TTY" != "1" ]; then
+    printf '════════════════════════════════\n  %s — %s\n════════════════════════════════\n' \
+      "$AX_PROJECT" "$AX_TAGLINE"
+    return
+  fi
+  printf '%b' "
+${AX_C_DIM}        ·────────·
+       ╱    ${AX_C_PURPLE}●${AX_C_DIM}     ╲
+      ${AX_C_INDIGO}●${AX_C_DIM}──────┼──────${AX_C_FUCHSIA}●${AX_C_DIM}
+       ╲          ╱
+        ·────────·${AX_RESET}
+"
+  printf '%b' "${AX_C_BOLD}${AX_C_INDIGO}  Axion${AX_C_PURPLE}Aura${AX_C_FG}  ${AX_RESET}${AX_C_MUTED}presents${AX_RESET}\n"
+  printf '%b' "${AX_C_BOLD}${AX_C_FG}  $AX_PROJECT${AX_RESET}  ${AX_C_MUTED}$AX_TAGLINE${AX_RESET}\n\n"
+}
+
+axion_done() {
+  printf '%b' "${AX_C_DIM}  ────────────────────────────${AX_RESET}\n"
+  printf '%b' "${AX_C_OK}  ✔${AX_C_BOLD}${AX_C_FG}  $AX_PROJECT is ready${AX_RESET}\n"
+  local line
+  for line in "$@"; do
+    printf '%b' "${AX_C_MUTED}  · ${AX_C_FG}$line${AX_RESET}\n"
+  done
+  printf '%b' "${AX_C_VIOLET}  ── AxionAura · Open source by default. Free for everyone. ──${AX_RESET}\n\n"
+}
+
+# ══ end AxionInstaller ══
 
 # ────────────────────────── configuration ──────────────────────────
 NODE_VERSION="22.14.0"          # pinned nodejs.org runtime used when the system Node is too old
@@ -43,9 +206,10 @@ while [ $# -gt 0 ]; do
 done
 
 # ────────────────────────── helpers ──────────────────────────
-info()  { printf '\033[1;36m[install]\033[0m %s\n' "$*"; }
-warn()  { printf '\033[1;33m[warn]\033[0m %s\n' "$*"; }
-die()   { printf '\033[1;31m[error]\033[0m %s\n' "$*" >&2; exit 1; }
+axion_init "SocialLive" "Self-hosted live streaming dashboard"
+info()  { axion_info "$*"; }
+warn()  { axion_warn "$*"; }
+die()   { axion_fail "$*"; exit 1; }
 have()  { command -v "$1" >/dev/null 2>&1; }
 run()   { if [ "$DRY_RUN" = "1" ]; then info "(dry-run) $*"; else "$@"; fi; }
 
@@ -127,7 +291,7 @@ install_node_tarball() {
   NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TARBALL}"
   info "Downloading Node.js v${NODE_VERSION} (${NODE_OS}-${NODE_ARCH}) → $RUNTIME_DIR"
   run mkdir -p "$RUNTIME_DIR"
-  fetch "$NODE_URL" "$RUNTIME_DIR/$NODE_TARBALL"
+  axion_step "Downloading Node.js runtime (portable)" fetch "$NODE_URL" "$RUNTIME_DIR/$NODE_TARBALL"
   run tar -xzf "$RUNTIME_DIR/$NODE_TARBALL" -C "$RUNTIME_DIR"
   run rm -f "$RUNTIME_DIR/$NODE_TARBALL"
   run ln -sfn "$RUNTIME_DIR/node-v${NODE_VERSION}-${NODE_OS}-${NODE_ARCH}/bin/node" "$RUNTIME_DIR/node"
@@ -195,15 +359,13 @@ else
 fi
 
 SRC="$INSTALL_DIR/.src.tar.gz"
-fetch "$SRC_URL" "$SRC"
+axion_step "Downloading SocialLive" fetch "$SRC_URL" "$SRC"
 run tar -xzf "$SRC" -C "$INSTALL_DIR" --strip-components=1
 run rm -f "$SRC"
 
-info "Installing dependencies (npm ci) — a couple of minutes"
-run sh -c "cd '$INSTALL_DIR' && npm ci --no-audit --no-fund"
+axion_step 'Installing dependencies (npm ci)' sh -c "cd '$INSTALL_DIR' && npm ci --no-audit --no-fund"
 
-info "Building (typecheck + web bundle + server) — a minute or two"
-run sh -c "cd '$INSTALL_DIR' && npm run build"
+axion_step 'Building dashboard and server' sh -c "cd '$INSTALL_DIR' && npm run build"
 
 # .env: port only — session secret / encryption key are auto-generated by the
 # server on first start and persisted under data/config/ (never committed).
@@ -356,12 +518,9 @@ fi
 LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 [ -z "${LAN_IP:-}" ] && [ "$OS" = "macos" ] && LAN_IP="$(ipconfig getifaddr en0 2>/dev/null || true)"
 
-printf '\n'
-info "──────────── SocialLive is ready ────────────"
-info "Dashboard:   http://localhost:$APP_PORT"
-[ -n "${LAN_IP:-}" ] && info "From phones on your Wi-Fi:  http://$LAN_IP:$APP_PORT"
-info "Install dir: $INSTALL_DIR"
-info "First step:  open the URL, create the admin account, add a destination."
-info "Update:      social-live update        Uninstall: reinstall this script with --uninstall"
-info "Keys are auto-generated under $INSTALL_DIR/data/config/ — back that folder up."
-printf '\n'
+axion_done \
+  "Dashboard:   http://localhost:$APP_PORT" \
+  "Wi-Fi:       http://${LAN_IP:-<your-ip>}:$APP_PORT" \
+  "Install dir: $INSTALL_DIR" \
+  "Update:      social-live update" \
+  "Keys:        $INSTALL_DIR/data/config/ — back this folder up"
