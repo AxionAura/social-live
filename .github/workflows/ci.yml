@@ -15,6 +15,8 @@ jobs:
         node: ['22', '24']
     steps:
       - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
