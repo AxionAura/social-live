@@ -122,9 +122,9 @@ axion_step() {
     "$@" 2>&1 | tee "$tmplog"
     local rc=${PIPESTATUS[0]}
     rm -f "$tmplog"
-    [ $rc -eq 0 ] && return $rc
+    [ "$rc" -eq 0 ] && return "$rc"
     axion_fail "$label (exit $rc) — log above"
-    return $rc
+    return "$rc"
   fi
   "$@" >"$tmplog" 2>&1 &
   local pid=$! rc
