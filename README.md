@@ -251,13 +251,13 @@ Copyleft, on purpose: if you modify SocialLive and offer it as a hosted service,
 
 ## 🗺 Roadmap
 
-| Milestone | Planned |
+| | |
 |---------|---------|
-| ✅ **Shipped** | YouTube, Facebook, **Twitch, Kick**, multi-destination streaming, scheduling, loop modes, one-line installer (Linux/macOS/Termux/**Windows**) |
-| **v0.4** | ~~Notifications (Telegram)~~ ✅ shipped · recurring schedules, email notifications, stream thumbnails in history |
-| **v0.5** | TikTok + more platforms, OAuth (YouTube/Facebook metadata from dashboard), platform APIs (stream health, chat) |
-| **v1.0** | Webcam & screen capture, scene editor, overlays/watermarks, audio mixer |
-| **Beyond** | Multi-user, RBAC, team workspaces, distributed streaming |
+| ✅ **Shipped** | YouTube · Facebook · Twitch · Kick · multi-destination · scheduling · loop modes · one-line installer · Telegram notifications |
+| 🔜 **Next** | Recurring schedules · email notifications · stream thumbnails in history · richer live metrics |
+| 🔭 **Later** | TikTok & more platforms · OAuth (metadata from dashboard) · platform APIs (stream health, chat) |
+| 🌙 **Future** | Webcam & screen capture · scene editor · overlays/watermarks · audio mixer |
+| 🏗️ **Long-term** | Multi-user · RBAC · team workspaces · distributed streaming |
 
 ---
 
