@@ -1,6 +1,6 @@
 import type { ServerEvent } from '@social-live/shared';
-import type { EventBus } from './lib/bus.js';
-import type { Logger } from './lib/logger.js';
+import type { EventBus } from '../lib/bus.js';
+import type { Logger } from '../lib/logger.js';
 
 export interface NotifyConfig {
   botToken: string | null;
