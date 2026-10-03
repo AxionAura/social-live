@@ -19,6 +19,7 @@ import { EventBus } from './lib/bus.js';
 import { AppError } from './lib/errors.js';
 import { StreamOrchestrator } from './services/orchestrator.js';
 import { Scheduler } from './services/scheduler.js';
+import { Notifier } from './services/notify.js';
 import { sessionHook } from './plugins/auth.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerVideoRoutes } from './routes/videos.js';
@@ -64,6 +65,11 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     ffmpegPath: ffmpeg?.path ?? null,
   });
   const scheduler = new Scheduler({ repos, orchestrator, logger });
+  const notifier = new Notifier(
+    { botToken: config.telegramBotToken, chatId: config.telegramChatId },
+    logger,
+  );
+  notifier.watch(bus);
 
   const context: ServerContext = {
     config,

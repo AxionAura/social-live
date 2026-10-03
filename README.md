@@ -39,6 +39,7 @@ No mandatory cloud services. No external SaaS accounts. Runs on Linux, Windows, 
 | ♾ **Loop modes** | ✅ None / N× / Infinite |
 | 📊 **Live metrics** | ✅ FPS, bitrate, duration |
 | 📜 **Stream logs** | ✅ Per-destination, redacted |
+| 🔔 **Notifications** | ✅ Telegram (start / stop / fail) |
 | 📁 **Video library** | ✅ Upload, search, rename, delete |
 | 🩺 **Diagnostics** | ✅ `social-live doctor` |
 | 📦 **Docker** | ✅ Official image + compose |
@@ -138,6 +139,8 @@ Copy `.env.example` to `.env` and adjust:
 | `AUDIO_BITRATE_KBPS` | `128` | Encoding audio bitrate |
 | `FFMPEG_PRESET` | `veryfast` | x264 preset (use `superfast` on weak devices) |
 | `VIDEO_FPS` | `30` | Output frame rate — Kick requires 30/60 |
+| `TELEGRAM_BOT_TOKEN` | *(empty)* | Optional: Telegram bot token for stream notifications |
+| `TELEGRAM_CHAT_ID` | *(empty)* | Optional: chat ID to receive the notifications |
 | `ALLOW_PRIVATE_RTMP_TARGETS` | `false` | **Dev only** — allows `rtmp://127.0.0.1/...` |
 | `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
 
@@ -251,7 +254,7 @@ Copyleft, on purpose: if you modify SocialLive and offer it as a hosted service,
 | Milestone | Planned |
 |---------|---------|
 | ✅ **Shipped** | YouTube, Facebook, **Twitch, Kick**, multi-destination streaming, scheduling, loop modes, one-line installer (Linux/macOS/Termux/**Windows**) |
-| **v0.4** | Notifications (Telegram/email), recurring schedules, stream thumbnails in history, richer live metrics |
+| **v0.4** | ~~Notifications (Telegram)~~ ✅ shipped · recurring schedules, email notifications, stream thumbnails in history |
 | **v0.5** | TikTok + more platforms, OAuth (YouTube/Facebook metadata from dashboard), platform APIs (stream health, chat) |
 | **v1.0** | Webcam & screen capture, scene editor, overlays/watermarks, audio mixer |
 | **Beyond** | Multi-user, RBAC, team workspaces, distributed streaming |

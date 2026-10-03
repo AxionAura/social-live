@@ -52,6 +52,8 @@ data/
 | `VIDEO_BITRATE_KBPS` | `4500` | Target video bitrate (kbps). Lower for limited upload bandwidth. |
 | `AUDIO_BITRATE_KBPS` | `128` | Target audio bitrate (kbps). |
 | `VIDEO_FPS` | `30` | Output frame rate forced on the encoder. Kick rejects non-30/60 sessions; keep 30 (or 60) for live platforms. |
+| `TELEGRAM_BOT_TOKEN` | *(empty)* | Optional. Create a bot with [@BotFather](https://t.me/BotFather), paste its token — stream start/finish/fail notifications will be sent to the chat below. |
+| `TELEGRAM_CHAT_ID` | *(empty)* | Optional. Chat/user ID that receives the notifications (message a bot like @userinfobot to find yours). Both values must be set for notifications to be active. |
 
 **Bitrate guidelines:**
 

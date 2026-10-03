@@ -51,6 +51,8 @@ export interface AppConfig {
   audioBitrateKbps: number;
   ffmpegPreset: string;
   videoFps: number;
+  telegramBotToken: string | null;
+  telegramChatId: string | null;
   allowPrivateRtmpTargets: boolean;
   logLevel: LogLevel;
   isProduction: boolean;
@@ -150,6 +152,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     audioBitrateKbps: intEnv(env.AUDIO_BITRATE_KBPS, 128),
     ffmpegPreset: env.FFMPEG_PRESET ?? 'veryfast',
     videoFps: intEnv(env.VIDEO_FPS, 30),
+    telegramBotToken: env.TELEGRAM_BOT_TOKEN || null,
+    telegramChatId: env.TELEGRAM_CHAT_ID || null,
     allowPrivateRtmpTargets: env.ALLOW_PRIVATE_RTMP_TARGETS === 'true',
     logLevel,
     isProduction: env.NODE_ENV === 'production',
