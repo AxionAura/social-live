@@ -472,7 +472,10 @@ RestartSec=5
 WantedBy=default.target
 EOF
   run systemctl --user daemon-reload
-  run systemctl --user enable --now social-live.service
+  run systemctl --user enable social-live.service
+  # restart (not just --now): an already-running old server must pick up
+  # the freshly built code — otherwise the dashboard serves stale versions
+  run systemctl --user restart social-live.service
 }
 
 install_service_macos() {
